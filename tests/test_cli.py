@@ -40,6 +40,45 @@ class CliTests(unittest.TestCase):
         ]
         self.assertEqual(random_actions, heuristic_actions)
 
+    def test_dynamic_games_default_to_realtime(self) -> None:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            main(
+                [
+                    "run",
+                    "snake",
+                    "--policy",
+                    "heuristic",
+                    "--max-decisions",
+                    "1",
+                ]
+            )
+
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["episodes"][0]["mode"], "realtime")
+        self.assertIn("late_decision_rate", result["aggregate"])
+
+    def test_tetris_caps_are_opt_in_and_labeled_as_diagnostics(self) -> None:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            main(
+                [
+                    "run",
+                    "tetris",
+                    "--policy",
+                    "heuristic",
+                    "--mode",
+                    "lockstep",
+                    "--max-decisions",
+                    "1",
+                ]
+            )
+
+        episode = json.loads(output.getvalue())["episodes"][0]
+        self.assertIsNone(episode["piece_limit"])
+        self.assertIsNone(episode["max_seconds"])
+        self.assertEqual(episode["terminal_reason"], "decision_limit")
+
 
 if __name__ == "__main__":
     unittest.main()

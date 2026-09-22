@@ -58,6 +58,12 @@ The catalog contains 29 entries: 16 GitHub builds, 11 X posts, and 2 articles. T
 | typesafe-jev-dojo | [lafollett-labs/typesafe-jev-dojo](https://github.com/lafollett-labs/typesafe-jev-dojo) | The Stacker scene records lines, pieces, height, holes, latency, confidence, and top-out. | Best licensed source for the first Tetris adapter. MIT licensed. |
 | A leveling agent that gets cheaper as it runs | [chalkychalk42/jev](https://github.com/chalkychalk42/jev) | XP/hour, levels, deaths, interventions, route completion, cost per XP, learned-policy coverage. | Capstone/continual-learning track. It targets a private TBC server and Windows capture, so reproducibility is limited. |
 
+## Snake follow-up
+
+An X search found two public Jev Snake implementations posted on September 17, 2026. [Musham Khan's post](https://x.com/iammusham/status/2100499596095209849) links to [`iammusham/jev-snake`](https://github.com/iammusham/jev-snake), a pure Python, seeded engine with structured state, explicit difficulty presets, terminal causes, tests, and benchmark guidance. [Nick Trierweiler's post](https://x.com/siroccomask/status/2100526283805675875) reports a 29-food, 461-decision run and links to [`siroccomask/snake-jev`](https://github.com/siroccomask/snake-jev). That controller asks nine binary subquestions per tick—three questions about each of three relative moves—and combines the answers in handwritten code. Those are not nine movement choices, but they are also not NARCADE's single four-way player decision.
+
+[`sorrycc/typesafe-snake`](https://github.com/sorrycc/typesafe-snake) is the strongest TypeScript alternative: it has a seeded pure engine and fixed clock, but it filters moves and adds code-generated pathfinding features to their descriptions. NARCADE instead uses a classic 20x20 rules engine with seeded food. On every tick the model chooses exactly one of `UP`, `DOWN`, `LEFT`, and `RIGHT`; the engine applies classic reversal behavior, advances the snake, handles food and growth, detects collisions, and decides when the episode ends. No danger filter or pathfinding fact changes what the player sees.
+
 ## Best starting environments
 
 ### 1. Minesweeper
@@ -78,8 +84,13 @@ Use multiple mine densities. Report clear rate and mean safe squares revealed. A
 
 Tetris adds planning and a latency-sensitive mode without adding licensed game assets. Run the same seeded piece streams in two tracks:
 
-- lockstep with a fixed piece cap, scored by lines and pieces survived;
+- lockstep control, scored by lines and pieces survived until top-out;
 - real time with fixed gravity, scored by lines, pieces, top-out time, and missed deadlines.
+
+In both tracks the model receives only the fixed player controls `LEFT`, `RIGHT`, `ROTATE`,
+`SOFT_DROP`, `HARD_DROP`, and `NONE`. The engine owns the active piece, gravity, collisions,
+locking, line clears, scoring, and top-out. Do not expose engine-computed placement outcomes such
+as projected holes, height, bumpiness, or line clears in the choices.
 
 The Dojo Stacker engine is the easiest licensed starting point. The `jev-tetris` repository is the stronger experimental reference because it already compares models under both lockstep and gravity.
 
@@ -87,15 +98,19 @@ The Dojo Stacker engine is the easiest licensed starting point. The `jev-tetris`
 
 Pong isolates reaction speed. The existing repository is Apache-2.0 and records the right latency data. Add a deterministic server-side opponent and seeded serves. Run at several ball speeds so the leaderboard shows the point where each model's latency stops being useful.
 
-### 4. Chess and Pokémon Showdown
+### 4. Snake
+
+Snake adds short-horizon navigation and self-collision while retaining an objective arcade score. Use seeded food and expose the same four absolute directions to every model on every tick, including fatal moves and the current direction's opposite. The rules engine—not the model adapter—owns reversal behavior, movement, growth, collision, and death. Report food eaten as the primary score and survival ticks as a secondary metric.
+
+### 5. Chess and Pokémon Showdown
 
 These add multi-turn strategy while retaining exact rules and legal moves. Chess already has conventional Elo anchors. Pokémon Showdown contributes hidden information, team matchups, stochastic outcomes, and a strong reproducibility pattern: fixed fixtures, swapped sides, saved decisions, source fingerprints, and replay verification.
 
-### 5. Doom or Jev's Fly
+### 6. Doom or Jev's Fly
 
 These add continuous state and short control macros. Use one fixed map/seed and publish both task reward and control failures. Doom should use Freedoom assets. Jev's Fly needs licensing permission or a small replacement environment.
 
-### 6. Long-horizon capstones
+### 7. Long-horizon capstones
 
 Pokémon Red, Slay the Spire 2, Minecraft, and the WoW leveling agent belong in milestone-based tracks. Full completion is too sparse by itself. Define intermediate milestones before evaluating models and preserve checkpoints only for recovery from infrastructure failure, unless checkpoint branching is the task being measured.
 
@@ -227,6 +242,7 @@ Commercial game binaries and assets should never be included. Require users to s
 - Minesweeper: independently implemented seeded engine.
 - Tetris: adapter around the MIT Dojo engine.
 - Pong: adapter around the Apache-2.0 repository.
+- Snake: deterministic engine adapted from `iammusham/jev-snake`.
 - Publish lockstep and real-time tables, raw logs, and confidence intervals.
 
 ### Release 2: strategic games
@@ -246,4 +262,4 @@ Traffic, evacuation, coaching, and creative tasks should become sibling suites t
 
 ## The first concrete build
 
-Start with Minesweeper, Tetris, and Pong. Together they test inference over hidden hazards, multi-step spatial planning, and real-time reaction. They run headlessly, have objective outcomes, support seeded episodes, and span both lockstep and deadline-sensitive play. This trio is small enough to make the runner and scoring rules correct before emulator setup and long-horizon state management dominate the work.
+Start with Minesweeper, Tetris, Pong, and Snake. Together they test inference over hidden hazards, multi-step spatial planning, real-time reaction, and short-horizon navigation with self-collision. They run headlessly, have objective outcomes, support seeded episodes, and span both lockstep and deadline-sensitive play. This group is small enough to make the runner and scoring rules correct before emulator setup and long-horizon state management dominate the work.

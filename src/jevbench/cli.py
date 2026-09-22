@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .laya_policy import LayaPolicy
+from .laya_policy import LayaPolicy, cache_laya_checkpoint
 from .models import DEFAULT_MODELS, SystemOneModel, load_models
 from .policies import HeuristicPolicy, RandomPolicy
 from .registry import GAME_DESCRIPTIONS, create_game
@@ -25,6 +25,15 @@ def _parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("list", help="List games, scores, and built-in model lanes")
+
+    cache = subparsers.add_parser("cache", help="Download pinned local-model checkpoints")
+    cache.add_argument(
+        "--models",
+        default="laya,laya-typed,laya-multilingual",
+        help="Comma-separated local-runtime model names",
+    )
+    cache.add_argument("--models-file", type=Path)
+    cache.add_argument("--cache-dir", type=Path)
 
     run = subparsers.add_parser("run", help="Run one game with one model or baseline")
     run.add_argument("game", choices=sorted(GAME_DESCRIPTIONS))
@@ -56,13 +65,22 @@ def _add_run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--mode",
         choices=("lockstep", "realtime"),
-        default="lockstep",
-        help="Pong timing mode; other games are lockstep",
+        help="Timing mode; defaults to realtime for Tetris/Pong/Snake and lockstep otherwise",
+    )
+    parser.add_argument(
+        "--max-seconds",
+        type=_positive_float,
+        help="Explicit diagnostic time cap for Tetris, or match limit for Pong (default: 120)",
     )
     parser.add_argument(
         "--max-decisions",
         type=_positive_int,
-        help="Per-episode decision budget; defaults to 81/200/500 by game",
+        help="Safety cap on model calls per episode; game-specific default",
+    )
+    parser.add_argument(
+        "--max-pieces",
+        type=_positive_int,
+        help="Explicit diagnostic Tetris piece cap; normal runs continue to top-out",
     )
     parser.add_argument(
         "--timeout",
@@ -95,8 +113,32 @@ def main(argv: list[str] | None = None) -> None:
         print("  heuristic    deterministic game-specific policy")
         return
 
-    if args.game != "pong" and args.mode != "lockstep":
-        parser.error("--mode realtime applies only to pong")
+    if args.command == "cache":
+        try:
+            models = load_models(args.models_file)
+            names = _model_names(args.models)
+            snapshots = {}
+            for name in names:
+                if name not in models or models[name].runtime != "laya":
+                    raise ValueError(f"{name!r} is not a configured local Laya model")
+                snapshots[name] = cache_laya_checkpoint(models[name], args.cache_dir)
+        except (OSError, ValueError, RuntimeError) as error:
+            print(f"error: {error}", file=sys.stderr)
+            raise SystemExit(2) from error
+        print(json.dumps({"cached": snapshots}, indent=2, sort_keys=True))
+        return
+
+    mode = _resolved_mode(args.game, args.mode)
+    if args.game == "minesweeper" and mode != "lockstep":
+        parser.error("Minesweeper supports only --mode lockstep")
+    if args.game != "tetris" and args.max_pieces is not None:
+        parser.error("--max-pieces applies only to Tetris")
+    args.mode = mode
+    if args.game in {"minesweeper", "snake"}:
+        if args.max_seconds is not None:
+            parser.error(f"--max-seconds does not apply to {args.game}")
+    elif args.game == "pong":
+        args.max_seconds = args.max_seconds or 120.0
 
     try:
         models = load_models(args.models_file)
@@ -107,8 +149,11 @@ def main(argv: list[str] | None = None) -> None:
             _validate_policies(names, models, args.timeout)
             results = {name: _run_one(args, name, models) for name in names}
             result = {
-                "benchmark_version": "0.2.0",
+                "benchmark_version": "0.4.0",
                 "game": args.game,
+                "mode": args.mode,
+                "max_seconds": args.max_seconds,
+                "max_pieces": args.max_pieces,
                 "models": names,
                 "first_seed": args.seed,
                 "episode_count": args.episodes,
@@ -130,14 +175,15 @@ def _run_one(
     policy_name: str,
     models: dict[str, SystemOneModel],
 ) -> dict[str, Any]:
-    max_decisions = (
-        args.max_decisions
-        or {
+    max_decisions = args.max_decisions
+    if max_decisions is None:
+        max_decisions = {
             "minesweeper": 81,
-            "tetris": 200,
-            "pong": 500,
+            "tetris": None,
+            "pong": 2_000 if args.mode == "realtime" else 500,
+            "snake": None,
         }[args.game]
-    )
+    piece_limit = args.max_pieces
 
     def game_factory(seed: int):
         return create_game(
@@ -145,7 +191,8 @@ def _run_one(
             seed=seed,
             difficulty=args.difficulty,
             mode=args.mode,
-            max_decisions=max_decisions,
+            piece_limit=piece_limit,
+            max_seconds=args.max_seconds,
         )
 
     shared_model_policy = None
@@ -187,6 +234,12 @@ def _model_names(value: str) -> list[str]:
     if len(names) != len(set(names)):
         raise ValueError("--models cannot contain duplicate names")
     return names
+
+
+def _resolved_mode(game: str, requested: str | None) -> str:
+    if requested:
+        return requested
+    return "lockstep" if game == "minesweeper" else "realtime"
 
 
 def _validate_policies(

@@ -1,7 +1,20 @@
 # Tetris environment
 
-The environment uses a seeded seven-bag piece stream on a 10 by 20 board. Each decision chooses one legal rotation and hard-drop column. There is no hold piece or preview beyond the next piece.
+NARCADE's Tetris environment is a seeded, headless control loop. On every nonterminal tick the
+model receives exactly six player inputs: `LEFT`, `RIGHT`, `ROTATE`, `SOFT_DROP`, `HARD_DROP`,
+and `NONE`. The engine owns the active piece, gravity, blocked-input behavior, collision detection,
+locking, line clearing, scoring, the seven-bag piece stream, and top-out.
 
-The primary score uses the classic line-clear table: 40, 100, 300, or 1,200 points for one through four lines, multiplied by the level plus one. The result also reports lines and pieces. Reaching the configured piece limit counts as survival; top-out counts as failure.
+The model sees the settled board, active piece, next piece, score, and line count. Action labels do
+not contain simulated placements or derived hints such as resulting height, holes, bumpiness, or
+line clears. Those calculations remain private to the optional heuristic baseline.
 
-The heuristic baseline scores placements by cleared lines, aggregate height, holes, and bumpiness.
+Real-time mode is the leaderboard track. Gravity continues while the model answers; an answer for
+a piece that locked during inference is discarded instead of being applied to the newly spawned
+piece. Easy, medium, and hard use 500, 250, and 100 millisecond control/gravity intervals.
+Lockstep advances one gravity tick after each player input and is available as an action-quality
+diagnostic.
+
+Normal episodes have no time, piece, or model-call limit and finish only when the engine records a
+top-out. Operators may explicitly set `--max-seconds`, `--max-pieces`, or `--max-decisions` for
+debugging or cost control; those runs are diagnostic and their terminal reasons identify the cap.

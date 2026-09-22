@@ -3,9 +3,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from jevbench.core import Action, Observation, PolicyDecision, PolicyTimeout
+from jevbench.core import Action, Observation, PolicyDecision, PolicyError, PolicyTimeout
 from jevbench.games.minesweeper import Minesweeper
 from jevbench.games.pong import Pong
+from jevbench.games.snake import Snake
 from jevbench.policies import HeuristicPolicy
 from jevbench.runner import run_benchmark, run_episode
 
@@ -32,7 +33,41 @@ class TimeoutPolicy:
         return {"kind": "test", "name": self.name}
 
 
+class ErrorPolicy:
+    name = "error"
+
+    def decide(self, game, observation: Observation, actions: list[Action]) -> PolicyDecision:
+        del game, observation, actions
+        raise PolicyError("failed immediately")
+
+    def metadata(self) -> dict[str, str]:
+        return {"kind": "test", "name": self.name}
+
+
+class StraightPolicy:
+    name = "straight"
+
+    def decide(self, game, observation: Observation, actions: list[Action]) -> PolicyDecision:
+        del game, observation
+        assert {action.id for action in actions} == {"UP", "DOWN", "LEFT", "RIGHT"}
+        return PolicyDecision("RIGHT")
+
+    def metadata(self) -> dict[str, str]:
+        return {"kind": "test", "name": self.name}
+
+
 class RunnerTests(unittest.TestCase):
+    def test_snake_without_decision_cap_runs_until_engine_death(self) -> None:
+        result = run_episode(
+            Snake(1, mode="lockstep"),
+            StraightPolicy(),
+            seed=1,
+            max_decisions=None,
+        )
+
+        self.assertEqual(result["terminal_reason"], "wall")
+        self.assertEqual(result["decisions"], 10)
+
     def test_invalid_action_terminates_and_is_reported(self) -> None:
         result = run_episode(
             Minesweeper(1),
@@ -63,7 +98,9 @@ class RunnerTests(unittest.TestCase):
         self.assertAlmostEqual(result["simulated_seconds"], 3.5)
 
     @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 10.2])
-    def test_invalid_response_is_counted_when_latency_ends_match(self, perf_counter) -> None:
+    def test_engine_terminal_state_wins_when_invalid_response_ends_match(
+        self, perf_counter
+    ) -> None:
         del perf_counter
         result = run_episode(
             Pong(1, difficulty="easy", mode="realtime", max_seconds=0.1),
@@ -75,7 +112,61 @@ class RunnerTests(unittest.TestCase):
 
         self.assertEqual(result["terminal_reason"], "time_limit")
         self.assertEqual(result["invalid_actions"], 1)
+        self.assertFalse(result["success"])
         self.assertFalse(result["decision_log"][0]["valid"])
+
+    @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 40.0])
+    def test_engine_collision_wins_when_snake_times_out(self, perf_counter) -> None:
+        del perf_counter
+        result = run_episode(
+            Snake(1, difficulty="hard", mode="realtime"),
+            TimeoutPolicy(),
+            seed=1,
+            max_decisions=None,
+        )
+
+        self.assertEqual(result["terminal_reason"], "wall")
+        self.assertEqual(result["timeouts"], 1)
+
+    def test_realtime_aggregate_reports_latency_penalties(self) -> None:
+        def games(seed: int):
+            return Pong(seed, difficulty="easy", mode="realtime", max_seconds=0.2)
+
+        def policies(seed: int):
+            del seed
+            return HeuristicPolicy()
+
+        result = run_benchmark(
+            games,
+            policies,
+            game_id="pong",
+            policy_name="heuristic",
+            first_seed=1,
+            episodes=1,
+            max_decisions=10,
+        )
+
+        self.assertIn("mean_simulated_seconds", result["aggregate"])
+        self.assertIn("mean_score_per_second", result["aggregate"])
+        self.assertIn("late_decision_rate", result["aggregate"])
+        self.assertIn("score_per_second", result["episodes"][0])
+
+    @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 10.0])
+    def test_zero_duration_realtime_error_has_no_score_rate(self, perf_counter) -> None:
+        del perf_counter
+
+        result = run_benchmark(
+            lambda seed: Pong(seed, difficulty="easy", mode="realtime"),
+            lambda seed: ErrorPolicy(),
+            game_id="pong",
+            policy_name="error",
+            first_seed=1,
+            episodes=1,
+            max_decisions=10,
+        )
+
+        self.assertIsNone(result["episodes"][0]["score_per_second"])
+        self.assertIsNone(result["aggregate"]["mean_score_per_second"])
 
     def test_aggregate_is_reproducible(self) -> None:
         def games(seed: int):

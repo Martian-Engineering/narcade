@@ -8,11 +8,11 @@ import {
   policies,
   policyOrder,
   results,
-  type GameKey,
+  type PublishedGameKey,
   type PolicyKey,
 } from "@/data/results";
 
-type View = "all" | GameKey;
+type View = "all" | PublishedGameKey;
 
 function formatLatency(value: number) {
   if (value < 1) return "<1 ms";
@@ -20,7 +20,7 @@ function formatLatency(value: number) {
   return `${Math.round(value)} ms`;
 }
 
-function rankForGame(game: GameKey, policy: PolicyKey, visible: PolicyKey[]) {
+function rankForGame(game: PublishedGameKey, policy: PolicyKey, visible: PolicyKey[]) {
   const score = results[game][policy].mean;
   return visible.filter((candidate) => results[game][candidate].mean > score).length + 1;
 }
@@ -139,7 +139,7 @@ export function Leaderboard() {
         )}
       </div>
       <div className="table-note">
-        <span>Run 001 · Sep 21, 2026</span>
+        <span>Run 001 · 5 learned lanes · 3 seeds</span>
         <span>↑ Higher is better</span>
       </div>
     </div>
@@ -156,6 +156,7 @@ function ModelCell({ policy }: { policy: PolicyKey }) {
         <small>{meta.detail}</small>
       </span>
       {meta.kind === "baseline" && <span className="anchor-chip">anchor</span>}
+      {meta.variant && <span className="variant-chip">variant</span>}
     </th>
   );
 }

@@ -115,6 +115,9 @@ class SystemOnePolicy:
         )
 
     def metadata(self) -> dict[str, str | None]:
+        runtime_hardware = (
+            os.environ.get("NARCADE_HARDWARE") if self._config.runtime == "kev" else None
+        )
         return {
             "kind": "model",
             "provider": self.name,
@@ -127,7 +130,7 @@ class SystemOnePolicy:
             "runtime_revision": self._config.runtime_revision,
             "container_digest": self._config.container_digest,
             "quantization": self._config.quantization,
-            "hardware": self._config.hardware,
+            "hardware": self._config.hardware or runtime_hardware,
             "training_exposure": self._config.training_exposure,
         }
 

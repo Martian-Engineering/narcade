@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jev-game-bench"
-version = "0.2.0"
+version = "0.4.0"
 description = "A reproducible benchmark for models playing structured-state games"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,6 +13,7 @@ dependencies = []
 
 [project.optional-dependencies]
 laya = ["laya==0.3.5"]
+hub = ["huggingface-hub>=0.34,<2"]
 
 [project.scripts]
 jev-bench = "jevbench.cli:main"

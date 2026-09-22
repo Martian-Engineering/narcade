@@ -51,6 +51,8 @@ class Pong:
         self.opponent_target = 0.5
         self._opponent_reaction_left = 0.0
         self.elapsed_seconds = 0.0
+        self.late_decisions = 0
+        self._cycle_remainder = 0.0
         self.returns = 0
         self.rallies = 0
         self._done = False
@@ -204,6 +206,7 @@ class Pong:
         ]
 
     def step(self, action_id: str, latency_ms: float = 0.0) -> None:
+        del latency_ms
         if action_id not in {action.id for action in self.legal_actions()}:
             raise ValueError(f"illegal Pong action: {action_id}")
         if self.mode == "lockstep":
@@ -211,10 +214,27 @@ class Pong:
             self._advance(self.decision_interval)
         else:
             self.agent_command = action_id
+            if self._cycle_remainder:
+                self._advance(self._cycle_remainder)
+                self._cycle_remainder = 0.0
 
     def advance_time(self, latency_ms: float) -> None:
-        if self.mode == "realtime":
-            self._advance(max(self.decision_interval, latency_ms / 1000))
+        if self.mode != "realtime" or self.done:
+            return
+        latency_seconds = max(0.0, latency_ms / 1000)
+        if latency_seconds > self.decision_interval:
+            self.late_decisions += 1
+        self._advance(latency_seconds)
+        if self.done:
+            self._cycle_remainder = 0.0
+            return
+        phase = latency_seconds % self.decision_interval
+        if latency_seconds < 1e-12:
+            self._cycle_remainder = self.decision_interval
+        else:
+            self._cycle_remainder = (
+                0.0 if phase < 1e-12 else self.decision_interval - phase
+            )
 
     def heuristic_action_id(self) -> str:
         if self.ball_vx > 0:
@@ -243,6 +263,8 @@ class Pong:
             "simulated_seconds": round(self.elapsed_seconds, 3),
             "opponent": self.difficulty,
             "mode": self.mode,
+            "decision_deadline_ms": round(self.decision_interval * 1000),
+            "late_decisions": self.late_decisions,
         }
 
 

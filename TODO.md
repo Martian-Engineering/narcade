@@ -1,6 +1,6 @@
 # Benchmark backlog
 
-The first suite covers Minesweeper, Tetris, and Pong. Add environments in this order after the runner and result schema stabilize.
+The first suite covers Minesweeper, Tetris, Pong, and Snake. Add environments in this order after the runner and result schema stabilize.
 
 ## Next strategic games
 
@@ -16,7 +16,7 @@ The first suite covers Minesweeper, Tetris, and Pong. Add environments in this o
 - [ ] Super Mario Bros. using [fhshaik/typesafe-mario](https://github.com/fhshaik/typesafe-mario). Use headless episodes and report progress, reward, deaths, completion, and latency. Require the operator to supply the ROM.
 - [ ] Mario checkpoint branching using [superradcompany/mario-never-dies](https://github.com/superradcompany/mario-never-dies). Keep this separate from single-trajectory Mario. Report progress, deaths, branches consumed, calls, and compute.
 - [ ] Endless runner. The catalog's Subway Surfers demo has no confirmed source. [afcodehub/Jev-Subway-Runner-3D](https://github.com/afcodehub/Jev-Subway-Runner-3D) is a related implementation. Prefer a small original runner with distance, survival, coins, and collision scores.
-- [ ] Pinned arcade environments such as Breakout, Snake, Pac-Man, Space Invaders, and Asteroids. Favor engines with deterministic seeds, direct score access, frame stepping, save states, and no network dependency.
+- [ ] Pinned arcade environments such as Breakout, Pac-Man, Space Invaders, and Asteroids. Favor engines with deterministic seeds, direct score access, frame stepping, save states, and no network dependency.
 
 ## Long-horizon games
 

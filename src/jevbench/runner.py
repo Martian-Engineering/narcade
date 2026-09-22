@@ -17,7 +17,7 @@ def run_episode(
     policy: Policy,
     *,
     seed: int,
-    max_decisions: int,
+    max_decisions: int | None,
     record_decisions: bool = False,
 ) -> dict[str, Any]:
     latencies: list[float] = []
@@ -31,7 +31,7 @@ def run_episode(
     confidences: list[float] = []
     override_reason: str | None = None
 
-    while not game.done and len(latencies) < max_decisions:
+    while not game.done and (max_decisions is None or len(latencies) < max_decisions):
         observation = game.observation()
         actions = _ordered_actions(game.legal_actions(), game.id, seed, len(latencies))
         if not actions:
@@ -126,12 +126,19 @@ def run_episode(
             break
 
         if not game.done:
-            game.step(decision.action_id)
+            game.step(decision.action_id, latency_ms=latency_ms)
 
-    if not game.done and override_reason is None:
+    if not game.done and override_reason is None and max_decisions is not None:
         override_reason = "decision_limit"
 
     game_result = game.result()
+    simulated_seconds = float(game_result.get("simulated_seconds", 0.0))
+    if game_result.get("mode") == "realtime":
+        game_result["score_per_second"] = (
+            round(float(game_result["score"]) / simulated_seconds, 6)
+            if simulated_seconds > 0
+            else None
+        )
     if override_reason:
         game_result["success"] = False
         game_result["terminal_reason"] = override_reason
@@ -175,7 +182,7 @@ def run_benchmark(
     policy_name: str,
     first_seed: int,
     episodes: int,
-    max_decisions: int,
+    max_decisions: int | None,
     record_decisions: bool = False,
 ) -> dict[str, Any]:
     runs = []
@@ -200,33 +207,60 @@ def run_benchmark(
         del run["_entropy_samples"]
         del run["_confidence_samples"]
 
+    realtime_runs = [run for run in runs if run.get("mode") == "realtime"]
+    total_decisions = sum(int(run["decisions"]) for run in runs)
+    total_late_decisions = sum(int(run.get("late_decisions", 0)) for run in runs)
+
+    aggregate = {
+        "score_name": runs[0]["score_name"],
+        "mean_score": round(statistics.fmean(scores), 3),
+        "median_score": round(statistics.median(scores), 3),
+        "min_score": min(scores),
+        "max_score": max(scores),
+        "success_rate": round(sum(bool(run["success"]) for run in runs) / episodes, 4),
+        "mean_decisions": round(statistics.fmean(int(run["decisions"]) for run in runs), 3),
+        "p50_latency_ms": round(statistics.median(latencies), 3) if latencies else 0.0,
+        "p95_latency_ms": round(_percentile(latencies, 0.95), 3) if latencies else 0.0,
+        "invalid_actions": sum(int(run["invalid_actions"]) for run in runs),
+        "timeouts": sum(int(run["timeouts"]) for run in runs),
+        "policy_errors": sum(int(run["policy_errors"]) for run in runs),
+        "input_tokens": sum(int(run["input_tokens"]) for run in runs),
+        "output_tokens": sum(int(run["output_tokens"]) for run in runs),
+        "mean_probability_entropy_bits": (
+            round(statistics.fmean(entropies), 6) if entropies else None
+        ),
+        "mean_confidence": (round(statistics.fmean(confidences), 6) if confidences else None),
+    }
+    if realtime_runs:
+        score_rates = [
+            float(run["score_per_second"])
+            for run in realtime_runs
+            if run.get("score_per_second") is not None
+        ]
+        aggregate.update(
+            {
+                "mean_simulated_seconds": round(
+                    statistics.fmean(float(run["simulated_seconds"]) for run in realtime_runs),
+                    3,
+                ),
+                "mean_score_per_second": (
+                    round(statistics.fmean(score_rates), 6) if score_rates else None
+                ),
+                "late_decisions": total_late_decisions,
+                "late_decision_rate": (
+                    round(total_late_decisions / total_decisions, 6) if total_decisions else 0.0
+                ),
+            }
+        )
+
     return {
-        "benchmark_version": "0.2.0",
+        "benchmark_version": "0.4.0",
         "game": game_id,
         "policy": policy_name,
         "policy_metadata": _unique_metadata(runs),
         "first_seed": first_seed,
         "episode_count": episodes,
-        "aggregate": {
-            "score_name": runs[0]["score_name"],
-            "mean_score": round(statistics.fmean(scores), 3),
-            "median_score": round(statistics.median(scores), 3),
-            "min_score": min(scores),
-            "max_score": max(scores),
-            "success_rate": round(sum(bool(run["success"]) for run in runs) / episodes, 4),
-            "mean_decisions": round(statistics.fmean(int(run["decisions"]) for run in runs), 3),
-            "p50_latency_ms": round(statistics.median(latencies), 3) if latencies else 0.0,
-            "p95_latency_ms": round(_percentile(latencies, 0.95), 3) if latencies else 0.0,
-            "invalid_actions": sum(int(run["invalid_actions"]) for run in runs),
-            "timeouts": sum(int(run["timeouts"]) for run in runs),
-            "policy_errors": sum(int(run["policy_errors"]) for run in runs),
-            "input_tokens": sum(int(run["input_tokens"]) for run in runs),
-            "output_tokens": sum(int(run["output_tokens"]) for run in runs),
-            "mean_probability_entropy_bits": (
-                round(statistics.fmean(entropies), 6) if entropies else None
-            ),
-            "mean_confidence": (round(statistics.fmean(confidences), 6) if confidences else None),
-        },
+        "aggregate": aggregate,
         "episodes": runs,
     }
 

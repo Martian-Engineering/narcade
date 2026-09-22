@@ -40,6 +40,7 @@ DEFAULT_MODELS = {
         model="openjev-0.1",
         api_key_env="CODIV_API_KEY",
         artifact="nvidia/diffusiongemma-26B-A4B-it-NVFP4",
+        artifact_revision="ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
     ),
     "kev": SystemOneModel(
         name="kev",
@@ -47,6 +48,14 @@ DEFAULT_MODELS = {
         model="kev-latest",
         api_key="local",
         artifact="jaredpalmer/kev-4b",
+        artifact_revision="485ace8703592fcf405488b262449990824cfed1",
+        runtime="kev",
+        runtime_revision="5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
+        quantization="bf16",
+        training_exposure=(
+            "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake "
+            "environments declared in the Kev-4B model card"
+        ),
     ),
     "laya": SystemOneModel(
         name="laya",
@@ -56,7 +65,7 @@ DEFAULT_MODELS = {
         artifact_revision="1c5edc17a7acd8701df6fc341c0d179f1c62c982",
         runtime="laya",
         runtime_revision="0.3.5",
-        training_exposure="No Minesweeper, Tetris, or Pong exposure declared",
+        training_exposure="No benchmark-game exposure declared",
     ),
     "laya-typed": SystemOneModel(
         name="laya-typed",
@@ -69,6 +78,17 @@ DEFAULT_MODELS = {
         training_exposure=(
             "Fine-tuned on the typed-decisions training split; no game exposure declared"
         ),
+    ),
+    "laya-multilingual": SystemOneModel(
+        name="laya-multilingual",
+        base_url="",
+        model="laya-multilingual-0.3.5",
+        artifact="convaiinnovations/laya-multilingual",
+        artifact_revision="052592a15d198d9ad47da779604259b10b47b7aa",
+        runtime="laya",
+        runtime_revision="0.3.5",
+        quantization="fp32",
+        training_exposure="No benchmark-game exposure declared",
     ),
 }
 

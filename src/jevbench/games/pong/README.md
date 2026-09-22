@@ -4,4 +4,4 @@ The benchmark policy controls the right paddle against a deterministic tracking 
 
 The primary score is points scored. Match success requires more points than the opponent. The result also reports point differential, paddle returns, rallies, and simulated time.
 
-Lockstep mode advances 100 ms after every decision. Real-time mode advances by the measured model latency, with a 100 ms minimum. The match time limit is the only upper bound. The previous paddle command stays active while the model answers.
+Lockstep mode advances 100 ms after every decision and ignores measured latency. In real-time mode, physics runs under the previous paddle command until the answer arrives. An answer inside the 100 ms control interval takes effect for the rest of that interval; a slower answer leaves the old command active through every interval it misses. Results report the number of late decisions alongside latency and simulated time.

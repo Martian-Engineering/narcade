@@ -1,11 +1,38 @@
 from __future__ import annotations
 
 import importlib
+import os
 import platform
+from pathlib import Path
 from typing import Any
 
 from .core import Action, Game, Observation, PolicyDecision, PolicyError
 from .models import SystemOneModel
+
+CHECKPOINT_PATTERNS = [
+    "rl_agent_config.json",
+    "model.safetensors",
+    "tokenizer/*",
+    "encoder/*",
+]
+
+
+def cache_laya_checkpoint(config: SystemOneModel, cache_dir: Path | None = None) -> str:
+    """Download a pinned Laya checkpoint and return its local snapshot path."""
+    checkpoint = config.artifact or config.model
+    try:
+        hub = importlib.import_module("huggingface_hub")
+        return hub.snapshot_download(
+            repo_id=checkpoint,
+            revision=config.artifact_revision,
+            allow_patterns=CHECKPOINT_PATTERNS,
+            cache_dir=str(cache_dir) if cache_dir else None,
+        )
+    except Exception as error:
+        revision = config.artifact_revision or "the default revision"
+        raise PolicyError(
+            f"{config.name} could not fetch checkpoint {revision}: {error}"
+        ) from error
 
 
 class LayaPolicy:
@@ -23,23 +50,7 @@ class LayaPolicy:
             ) from error
         checkpoint = config.artifact or config.model
         if config.artifact_revision:
-            try:
-                hub = importlib.import_module("huggingface_hub")
-                checkpoint = hub.snapshot_download(
-                    repo_id=checkpoint,
-                    revision=config.artifact_revision,
-                    allow_patterns=[
-                        "rl_agent_config.json",
-                        "model.safetensors",
-                        "tokenizer/*",
-                        "encoder/*",
-                    ],
-                )
-            except Exception as error:
-                raise PolicyError(
-                    f"{self.name} could not fetch pinned checkpoint {config.artifact_revision}: "
-                    f"{error}"
-                ) from error
+            checkpoint = cache_laya_checkpoint(config)
         try:
             self._agent = runtime.load(checkpoint)
         except Exception as error:
@@ -118,7 +129,18 @@ def _usage_int(usage: Any, key: str) -> int:
 
 def _runtime_hardware(agent: Any) -> str:
     device = getattr(agent, "device", "unknown device")
-    return f"{platform.system()} {platform.machine()} · {device}"
+    accelerator = None
+    if getattr(device, "type", None) == "cuda":
+        try:
+            torch = importlib.import_module("torch")
+            accelerator = torch.cuda.get_device_name(device)
+        except (AttributeError, RuntimeError):
+            pass
+    detail = accelerator or str(device)
+    flavor = os.environ.get("ACCELERATOR")
+    if flavor:
+        detail = f"{flavor} · {detail}"
+    return f"{platform.system()} {platform.machine()} · {detail}"
 
 
 def _probabilities(value: Any) -> dict[str, float] | None:

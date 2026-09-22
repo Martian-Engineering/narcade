@@ -10,6 +10,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from .core import Action, Game, Observation, PolicyDecision, PolicyError, PolicyTimeout
 from .models import SystemOneModel
+from .response import parse_decision
 
 MAX_RESPONSE_BYTES = 1024 * 1024
 
@@ -93,26 +94,10 @@ class SystemOnePolicy:
         except (ValueError, OSError) as error:
             raise PolicyError(f"{self.name} returned an unreadable response: {error}") from error
 
-        try:
-            answer = body["answers"]["action"]
-            action_id = answer["choice"]
-        except (KeyError, TypeError) as error:
-            raise PolicyError(f"{self.name} response is missing answers.action.choice") from error
-        if not isinstance(action_id, str):
-            raise PolicyError(f"{self.name} answers.action.choice must be a string")
+        decision = parse_decision(body)
         if isinstance(body.get("model"), str):
             self._resolved_model = body["model"]
-
-        usage = body.get("usage") or {}
-        probabilities = _probabilities(answer.get("probabilities"))
-        confidence = _optional_unit_float(answer.get("confidence"), "confidence")
-        return PolicyDecision(
-            action_id=action_id,
-            input_tokens=_usage_int(usage, "input_tokens", "inputTokens"),
-            output_tokens=_usage_int(usage, "output_tokens", "outputTokens"),
-            probabilities=probabilities,
-            confidence=confidence,
-        )
+        return decision
 
     def metadata(self) -> dict[str, str | None]:
         runtime_hardware = (
@@ -135,26 +120,6 @@ class SystemOnePolicy:
         }
 
 
-def _usage_int(usage: Any, snake_key: str, camel_key: str) -> int:
-    if not isinstance(usage, dict):
-        return 0
-    value = usage.get(snake_key, usage.get(camel_key, 0))
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise PolicyError(f"usage.{snake_key} must be a non-negative integer")
-    if isinstance(value, int):
-        if value < 0:
-            raise PolicyError(f"usage.{snake_key} must be a non-negative integer")
-        if value > 2**63 - 1:
-            raise PolicyError(f"usage.{snake_key} is too large")
-        return value
-    numeric = float(value)
-    if not math.isfinite(numeric) or numeric < 0 or not numeric.is_integer():
-        raise PolicyError(f"usage.{snake_key} must be a non-negative integer")
-    if numeric > 2**63 - 1:
-        raise PolicyError(f"usage.{snake_key} is too large")
-    return int(numeric)
-
-
 def _read_bounded(response: Any) -> bytes:
     headers = getattr(response, "headers", None)
     content_length = headers.get("Content-Length") if headers is not None else None
@@ -169,40 +134,6 @@ def _read_bounded(response: Any) -> bytes:
     if len(body) > MAX_RESPONSE_BYTES:
         raise ValueError(f"response exceeds {MAX_RESPONSE_BYTES} bytes")
     return body
-
-
-def _probabilities(value: Any) -> dict[str, float] | None:
-    if value is None:
-        return None
-    if not isinstance(value, dict) or not value:
-        raise PolicyError("answers.action.probabilities must be a non-empty object")
-    result = {}
-    for key, probability in value.items():
-        if not isinstance(key, str):
-            raise PolicyError("probability action identifiers must be strings")
-        result[key] = _unit_float(probability, f"probability for {key!r}")
-    if not any(result.values()):
-        raise PolicyError("answers.action.probabilities must contain positive mass")
-    return result
-
-
-def _optional_unit_float(value: Any, field: str) -> float | None:
-    if value is None:
-        return None
-    return _unit_float(value, field)
-
-
-def _unit_float(value: Any, field: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise PolicyError(f"{field} must be a number from 0 to 1")
-    if isinstance(value, int):
-        if not 0 <= value <= 1:
-            raise PolicyError(f"{field} must be a number from 0 to 1")
-        return float(value)
-    numeric = float(value)
-    if not math.isfinite(numeric) or not 0 <= numeric <= 1:
-        raise PolicyError(f"{field} must be a number from 0 to 1")
-    return numeric
 
 
 def _bounded_json_int(value: str) -> int:

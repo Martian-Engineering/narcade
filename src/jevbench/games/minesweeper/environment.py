@@ -102,12 +102,8 @@ class Minesweeper:
     def observation(self) -> Observation:
         return Observation(
             state={
-                "game": "Minesweeper",
-                "difficulty": self.difficulty,
                 "board": self._board_text(),
                 "mines": self.mine_count,
-                "safe_squares_revealed": self.safe_revealed,
-                "safe_squares_total": self.max_safe,
                 "notation": "# is covered. Columns are A-I and rows are 1-9.",
             },
             instructions=(
@@ -128,8 +124,7 @@ class Minesweeper:
                     actions.append(Action(self._label(cell), f"Reveal square {self._label(cell)}"))
         return actions
 
-    def step(self, action_id: str, latency_ms: float = 0.0) -> None:
-        del latency_ms
+    def step(self, action_id: str) -> None:
         legal = {action.id for action in self.legal_actions()}
         if action_id not in legal:
             raise ValueError(f"illegal Minesweeper action: {action_id}")

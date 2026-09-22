@@ -1,164 +1,77 @@
 from __future__ import annotations
 
 import argparse
-import os
+import json
+import shutil
+import subprocess
+import tempfile
+from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 
 from huggingface_hub import run_job, sync_bucket, sync_job_volume, wait_for_job
 
-HOSTED_MODEL_SECRETS = {
-    "jev": "TYPESAFE_API_KEY",
-    "openjev": "CODIV_API_KEY",
-}
-KNOWN_MODELS = {
-    "random",
-    "heuristic",
-    "jev",
-    "openjev",
-    "kev",
-    "laya",
-    "laya-typed",
-    "laya-multilingual",
-}
-KNOWN_GAMES = {"minesweeper", "tetris", "pong", "snake"}
-
-
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Launch the NARCADE suite as a single-GPU Hugging Face Job"
-    )
-    parser.add_argument("space_id", help="Docker Space image source, for example org/narcade")
-    parser.add_argument("--image", help="Override the default hf.co/spaces/<space_id> image")
-    parser.add_argument("--namespace", help="Hugging Face user or organization that owns the Job")
-    parser.add_argument("--flavor", default="a100-large", help="Jobs hardware flavor")
-    parser.add_argument(
-        "--models",
-        default="random,heuristic,jev,openjev,kev",
-        help="Comma-separated benchmark lanes",
-    )
-    parser.add_argument("--games", default="minesweeper,tetris,pong,snake")
-    parser.add_argument("--episodes", type=int, default=3)
-    parser.add_argument("--seed", type=int, default=100)
-    parser.add_argument("--difficulty", choices=("easy", "medium", "hard"), default="medium")
-    parser.add_argument("--mode", choices=("auto", "lockstep", "realtime"), default="auto")
-    parser.add_argument("--max-seconds", type=float)
-    parser.add_argument("--max-pieces", type=int, default=200)
-    parser.add_argument("--max-decisions", type=int, default=2_000)
-    parser.add_argument("--timeout", default="6h", help="Hugging Face Job timeout")
-    parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--detach", action="store_true", help="Return after scheduling the Job")
-    return parser
-
-
-def _selected_models(value: str) -> list[str]:
-    return [item.strip() for item in value.split(",") if item.strip()]
-
-
-def _validate(args: argparse.Namespace, models: list[str]) -> None:
-    games = _selected_models(args.games)
-    unknown_models = sorted(set(models) - KNOWN_MODELS)
-    unknown_games = sorted(set(games) - KNOWN_GAMES)
-    if unknown_models:
-        raise ValueError(f"unknown models: {', '.join(unknown_models)}")
-    if not games:
-        raise ValueError("--games must contain at least one game")
-    if unknown_games:
-        raise ValueError(f"unknown games: {', '.join(unknown_games)}")
-    if args.episodes <= 0:
-        raise ValueError("--episodes must be greater than zero")
-    if args.max_seconds is not None and args.max_seconds <= 0:
-        raise ValueError("--max-seconds must be greater than zero")
-    if args.max_pieces is not None and args.max_pieces <= 0:
-        raise ValueError("--max-pieces must be greater than zero")
-    if args.max_decisions is not None and args.max_decisions <= 0:
-        raise ValueError("--max-decisions must be greater than zero")
-    if args.mode == "realtime" and "minesweeper" in games:
-        raise ValueError("Minesweeper does not support realtime mode")
-
-
-def _job_secrets(models: list[str]) -> dict[str, str]:
-    required = {secret for model, secret in HOSTED_MODEL_SECRETS.items() if model in models}
-    missing = sorted(secret for secret in required if not os.environ.get(secret))
-    if missing:
-        raise ValueError(f"missing local environment variables: {', '.join(missing)}")
-    return {secret: os.environ[secret] for secret in sorted(required)}
-
-
-def _job_command(args: argparse.Namespace) -> list[str]:
-    command = [
-        "python",
-        "/app/job_runner.py",
-        "--models",
-        args.models,
-        "--games",
-        args.games,
-        "--episodes",
-        str(args.episodes),
-        "--seed",
-        str(args.seed),
-        "--difficulty",
-        args.difficulty,
-        "--mode",
-        args.mode,
-        "--output-dir",
-        "/outputs",
-    ]
-    if args.max_seconds is not None:
-        command.extend(["--max-seconds", str(args.max_seconds)])
-    if args.max_pieces is not None:
-        command.extend(["--max-pieces", str(args.max_pieces)])
-    if args.max_decisions is not None:
-        command.extend(["--max-decisions", str(args.max_decisions)])
-    return command
+from jevbench.config import add_run_options, config_from_args
 
 
 def main(argv: list[str] | None = None) -> None:
-    args = _parser().parse_args(argv)
-    models = _selected_models(args.models)
-    if not models:
-        raise SystemExit("error: --models must contain at least one model")
+    parser = argparse.ArgumentParser(
+        description="Launch the same NARCADE suite on Hugging Face Jobs"
+    )
+    add_run_options(parser)
+    parser.add_argument("--flavor", default="a100-large")
+    parser.add_argument("--image", default="nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04")
+    parser.add_argument("--job-timeout", default="6h")
+    parser.add_argument("--namespace")
+    parser.add_argument("--detach", action="store_true")
+    args = parser.parse_args(argv)
     try:
-        _validate(args, models)
-        secrets = _job_secrets(models)
+        config = config_from_args(args)
+        secrets = config.secrets()
+        if args.output_dir.exists() and any(args.output_dir.iterdir()):
+            raise ValueError("output directory must be empty")
     except ValueError as error:
-        raise SystemExit(f"error: {error}") from error
-
-    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    output_dir = (args.output_dir or Path("results") / "hf" / timestamp).resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    volume = sync_job_volume(
-        output_dir,
-        "/outputs",
-        remote_name=f"narcade-{timestamp}",
-        read_only=False,
-        namespace=args.namespace,
-    )
-    image = args.image or f"hf.co/spaces/{args.space_id}"
-    job = run_job(
-        image=image,
-        command=_job_command(args),
-        env={"NARCADE_JOB_IMAGE": image},
-        secrets=secrets,
-        flavor=args.flavor,
-        timeout=args.timeout,
-        name=f"narcade-{timestamp}",
-        labels={"benchmark": "narcade", "hardware": args.flavor},
-        volumes=[volume],
-        namespace=args.namespace,
-    )
-    print(f"Job: {job.url}")
-    print(f"Hardware: {args.flavor}")
-    print(f"Output bucket: hf://buckets/{volume.source}/{volume.path or ''}")
+        parser.error(str(error))
+    repository = Path(__file__).resolve().parents[1]
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    output = args.output_dir.resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="narcade-job-") as directory:
+        stage = Path(directory)
+        subprocess.run(
+            ["uv", "build", "--wheel", "--out-dir", str(stage / "dist")], cwd=repository, check=True
+        )
+        for name in ("bootstrap_job.sh", "requirements.lock"):
+            shutil.copy2(repository / "hf" / name, stage / name)
+        (stage / "config.json").write_text(json.dumps(asdict(config)))
+        source = sync_job_volume(
+            stage, "/workspace", remote_name=f"narcade-source-{stamp}", namespace=args.namespace
+        )
+        volume = sync_job_volume(
+            output,
+            "/outputs",
+            remote_name=f"narcade-results-{stamp}",
+            read_only=False,
+            namespace=args.namespace,
+        )
+        job = run_job(
+            image=args.image,
+            command=["bash", "/workspace/bootstrap_job.sh"],
+            env={"NARCADE_JOB_IMAGE": args.image},
+            secrets=secrets,
+            flavor=args.flavor,
+            timeout=args.job_timeout,
+            name=f"narcade-{stamp}",
+            volumes=[source, volume],
+            namespace=args.namespace,
+        )
+    remote_output = f"hf://buckets/{volume.source}/{volume.path or ''}"
+    print(f"Job: {job.url}\nArtifacts: {remote_output}", flush=True)
     if args.detach:
         return
-
     finished = wait_for_job(job.id, namespace=args.namespace)
-    source = f"hf://buckets/{volume.source}"
-    if volume.path:
-        source += f"/{volume.path}"
-    sync_bucket(source, str(output_dir))
-    print(f"Results: {output_dir}")
+    sync_bucket(remote_output, str(output))
+    print(f"Results: {output}")
     if finished.status.stage != "COMPLETED":
         raise SystemExit(f"Job ended with status {finished.status.stage}: {job.url}")
 

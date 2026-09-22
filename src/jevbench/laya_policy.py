@@ -8,6 +8,7 @@ from typing import Any
 
 from .core import Action, Game, Observation, PolicyDecision, PolicyError
 from .models import SystemOneModel
+from .response import parse_decision
 
 CHECKPOINT_PATTERNS = [
     "rl_agent_config.json",
@@ -56,15 +57,6 @@ class LayaPolicy:
         except Exception as error:
             raise PolicyError(f"{self.name} could not load {checkpoint}: {error}") from error
 
-    @staticmethod
-    def validate_runtime() -> None:
-        try:
-            importlib.import_module("laya")
-        except ModuleNotFoundError as error:
-            raise PolicyError(
-                "the laya runtime is required; install jev-game-bench[laya]"
-            ) from error
-
     def decide(
         self,
         game: Game,
@@ -83,22 +75,13 @@ class LayaPolicy:
         }
         try:
             body = self._agent.system_one(observation.state, questions)
-            answer = body["answers"]["action"]
-            action_id = answer["choice"]
         except Exception as error:
             raise PolicyError(f"{self.name} inference failed: {error}") from error
-        if not isinstance(action_id, str):
-            raise PolicyError(f"{self.name} answers.action.choice must be a string")
+        decision = parse_decision(body)
         resolved_model = body.get("model")
         if isinstance(resolved_model, str):
             self._resolved_model = resolved_model
-        return PolicyDecision(
-            action_id=action_id,
-            input_tokens=_usage_int(body.get("usage"), "input_tokens"),
-            output_tokens=_usage_int(body.get("usage"), "output_tokens"),
-            probabilities=_probabilities(answer.get("probabilities")),
-            confidence=_optional_unit_float(answer.get("confidence"), "confidence"),
-        )
+        return decision
 
     def metadata(self) -> dict[str, str | None]:
         return {
@@ -118,15 +101,6 @@ class LayaPolicy:
         }
 
 
-def _usage_int(usage: Any, key: str) -> int:
-    if not isinstance(usage, dict):
-        return 0
-    value = usage.get(key, 0)
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise PolicyError(f"usage.{key} must be a non-negative integer")
-    return value
-
-
 def _runtime_hardware(agent: Any) -> str:
     device = getattr(agent, "device", "unknown device")
     accelerator = None
@@ -141,35 +115,3 @@ def _runtime_hardware(agent: Any) -> str:
     if flavor:
         detail = f"{flavor} · {detail}"
     return f"{platform.system()} {platform.machine()} · {detail}"
-
-
-def _probabilities(value: Any) -> dict[str, float] | None:
-    if value is None:
-        return None
-    if not isinstance(value, dict) or not value:
-        raise PolicyError("answers.action.probabilities must be a non-empty object")
-    result = {
-        key: _unit_float(probability, f"probability for {key!r}")
-        for key, probability in value.items()
-        if isinstance(key, str)
-    }
-    if len(result) != len(value):
-        raise PolicyError("probability action identifiers must be strings")
-    if not any(result.values()):
-        raise PolicyError("answers.action.probabilities must contain positive mass")
-    return result
-
-
-def _optional_unit_float(value: Any, field: str) -> float | None:
-    if value is None:
-        return None
-    return _unit_float(value, field)
-
-
-def _unit_float(value: Any, field: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise PolicyError(f"{field} must be a number from 0 to 1")
-    numeric = float(value)
-    if not 0 <= numeric <= 1:
-        raise PolicyError(f"{field} must be a number from 0 to 1")
-    return numeric

@@ -69,19 +69,20 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result["decisions"], 10)
 
     def test_invalid_action_terminates_and_is_reported(self) -> None:
+        records = []
         result = run_episode(
             Minesweeper(1),
             InvalidPolicy(),
             seed=1,
             max_decisions=10,
-            record_decisions=True,
+            trace=records.append,
         )
         self.assertEqual(result["terminal_reason"], "invalid_action")
         self.assertEqual(result["invalid_actions"], 1)
         self.assertFalse(result["success"])
-        self.assertEqual(len(result["decision_log"]), 1)
-        self.assertFalse(result["decision_log"][0]["valid"])
-        self.assertEqual(result["decision_log"][0]["selected_action_id"], "not_legal")
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["error"], "invalid_action")
+        self.assertEqual(records[0]["selected_action_id"], "not_legal")
 
     @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 13.5])
     def test_realtime_timeout_advances_game_by_wait_duration(self, perf_counter) -> None:
@@ -102,18 +103,19 @@ class RunnerTests(unittest.TestCase):
         self, perf_counter
     ) -> None:
         del perf_counter
+        records = []
         result = run_episode(
             Pong(1, difficulty="easy", mode="realtime", max_seconds=0.1),
             InvalidPolicy(),
             seed=1,
             max_decisions=10,
-            record_decisions=True,
+            trace=records.append,
         )
 
         self.assertEqual(result["terminal_reason"], "time_limit")
         self.assertEqual(result["invalid_actions"], 1)
         self.assertFalse(result["success"])
-        self.assertFalse(result["decision_log"][0]["valid"])
+        self.assertEqual(records[0]["error"], "invalid_action")
 
     @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 40.0])
     def test_engine_collision_wins_when_snake_times_out(self, perf_counter) -> None:
@@ -147,12 +149,10 @@ class RunnerTests(unittest.TestCase):
         )
 
         self.assertIn("mean_simulated_seconds", result["aggregate"])
-        self.assertIn("mean_score_per_second", result["aggregate"])
         self.assertIn("late_decision_rate", result["aggregate"])
-        self.assertIn("score_per_second", result["episodes"][0])
 
     @patch("jevbench.runner.time.perf_counter", side_effect=[10.0, 10.0])
-    def test_zero_duration_realtime_error_has_no_score_rate(self, perf_counter) -> None:
+    def test_zero_duration_realtime_error_is_reported(self, perf_counter) -> None:
         del perf_counter
 
         result = run_benchmark(
@@ -165,8 +165,39 @@ class RunnerTests(unittest.TestCase):
             max_decisions=10,
         )
 
-        self.assertIsNone(result["episodes"][0]["score_per_second"])
-        self.assertIsNone(result["aggregate"]["mean_score_per_second"])
+        self.assertEqual(result["aggregate"]["policy_errors"], 1)
+        self.assertEqual(result["episodes"][0]["simulated_seconds"], 0)
+
+    def test_suite_marks_model_call_failure_and_preserves_output(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        from jevbench.config import RunConfig
+        from jevbench.suite import _run_model
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            with (
+                patch("jevbench.suite.SystemOnePolicy", return_value=ErrorPolicy()),
+                self.assertRaises(SystemExit) as exited,
+            ):
+                _run_model(
+                    RunConfig(models=["jev"], games=["minesweeper"], episodes=1), "jev", output
+                )
+            self.assertEqual(exited.exception.code, 1)
+            result = json.loads((output / "jev-minesweeper.json").read_text())
+            self.assertEqual(result["status"], "failed")
+            self.assertEqual(result["aggregate"]["policy_errors"], 1)
+
+    def test_minesweeper_solve_time_requires_a_clear(self):
+        with patch("jevbench.runner.time.monotonic", side_effect=[10, 12]):
+            game = Minesweeper(1)
+            game._revealed = {(r, c) for r in range(9) for c in range(9)} - game._mines
+            result = run_episode(game, HeuristicPolicy(), seed=1, max_decisions=81)
+        self.assertEqual(result["solve_seconds"], 2)
+        failed = run_episode(Minesweeper(1), InvalidPolicy(), seed=1, max_decisions=1)
+        self.assertIsNone(failed["solve_seconds"])
 
     def test_aggregate_is_reproducible(self) -> None:
         def games(seed: int):

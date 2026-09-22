@@ -18,12 +18,7 @@ class RandomPolicy:
         actions: list[Action],
     ) -> PolicyDecision:
         del game, observation
-        probability = 1 / len(actions)
-        return PolicyDecision(
-            self._rng.choice(actions).id,
-            probabilities={action.id: probability for action in actions},
-            confidence=probability,
-        )
+        return PolicyDecision(self._rng.choice(actions).id)
 
     def metadata(self) -> dict[str, str]:
         return {"kind": "baseline", "name": self.name}
@@ -40,11 +35,7 @@ class HeuristicPolicy:
     ) -> PolicyDecision:
         del observation
         action_id = game.heuristic_action_id()
-        return PolicyDecision(
-            action_id,
-            probabilities={action.id: float(action.id == action_id) for action in actions},
-            confidence=1.0,
-        )
+        return PolicyDecision(action_id)
 
     def metadata(self) -> dict[str, str]:
         return {"kind": "baseline", "name": self.name}

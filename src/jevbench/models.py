@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import tomllib
-from dataclasses import dataclass, replace
-from pathlib import Path
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -91,52 +88,3 @@ DEFAULT_MODELS = {
         training_exposure="No benchmark-game exposure declared",
     ),
 }
-
-
-def load_models(path: Path | None = None) -> dict[str, SystemOneModel]:
-    models = dict(DEFAULT_MODELS)
-    if path is None:
-        return models
-    parsed = tomllib.loads(path.read_text(encoding="utf-8"))
-    entries = parsed.get("models")
-    if not isinstance(entries, dict):
-        raise ValueError(f"{path} must contain a [models.<name>] table")
-    for name, values in entries.items():
-        if not isinstance(values, dict):
-            raise ValueError(f"models.{name} must be a table")
-        base = models.get(name)
-        models[name] = _model_from_mapping(name, values, base)
-    return models
-
-
-def _model_from_mapping(
-    name: str,
-    values: dict[str, Any],
-    base: SystemOneModel | None,
-) -> SystemOneModel:
-    allowed = {
-        "base_url",
-        "model",
-        "api_key_env",
-        "api_key",
-        "artifact",
-        "artifact_revision",
-        "runtime",
-        "runtime_revision",
-        "container_digest",
-        "quantization",
-        "hardware",
-        "training_exposure",
-    }
-    unknown = set(values) - allowed
-    if unknown:
-        raise ValueError(f"models.{name} has unknown fields: {', '.join(sorted(unknown))}")
-    if base is None:
-        missing = {"base_url", "model"} - set(values)
-        if missing:
-            raise ValueError(f"models.{name} is missing: {', '.join(sorted(missing))}")
-        base = SystemOneModel(name=name, base_url="", model="")
-    for key, value in values.items():
-        if value is not None and not isinstance(value, str):
-            raise ValueError(f"models.{name}.{key} must be a string")
-    return replace(base, name=name, **values)

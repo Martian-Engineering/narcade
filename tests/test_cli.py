@@ -1,84 +1,89 @@
 from __future__ import annotations
 
-import io
 import json
+import os
+import subprocess
+import sys
+import tempfile
 import unittest
-from contextlib import redirect_stdout
-
-from jevbench.cli import main
+from pathlib import Path
 
 
 class CliTests(unittest.TestCase):
-    def test_compare_runs_same_seed_pack_for_multiple_policies(self) -> None:
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main(
-                [
-                    "compare",
-                    "minesweeper",
-                    "--models",
-                    "random,heuristic",
-                    "--episodes",
-                    "2",
-                    "--seed",
-                    "40",
-                    "--max-decisions",
-                    "2",
-                    "--record-decisions",
-                ]
+    def test_suite_runs_all_engines_and_writes_separate_traces(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command = [
+                sys.executable,
+                "-m",
+                "jevbench",
+                "--models",
+                "random,heuristic",
+                "--episodes",
+                "2",
+                "--seed",
+                "40",
+                "--max-decisions",
+                "2",
+                "--trace",
+                "--output-dir",
+                directory,
+            ]
+            completed = subprocess.run(
+                command, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": "src"}
             )
-        result = json.loads(output.getvalue())
-
-        self.assertEqual(result["models"], ["random", "heuristic"])
-        for policy in result["results"].values():
-            self.assertEqual([episode["seed"] for episode in policy["episodes"]], [40, 41])
-        random_actions = result["results"]["random"]["episodes"][0]["decision_log"][0][
-            "presented_action_ids"
-        ]
-        heuristic_actions = result["results"]["heuristic"]["episodes"][0]["decision_log"][0][
-            "presented_action_ids"
-        ]
-        self.assertEqual(random_actions, heuristic_actions)
-
-    def test_dynamic_games_default_to_realtime(self) -> None:
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main(
-                [
-                    "run",
-                    "snake",
-                    "--policy",
-                    "heuristic",
-                    "--max-decisions",
-                    "1",
-                ]
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            output = Path(directory)
+            self.assertEqual(
+                json.loads((output / "manifest.json").read_text())["status"], "completed"
             )
-
-        result = json.loads(output.getvalue())
-        self.assertEqual(result["episodes"][0]["mode"], "realtime")
-        self.assertIn("late_decision_rate", result["aggregate"])
-
-    def test_tetris_caps_are_opt_in_and_labeled_as_diagnostics(self) -> None:
-        output = io.StringIO()
-        with redirect_stdout(output):
-            main(
-                [
-                    "run",
-                    "tetris",
-                    "--policy",
-                    "heuristic",
-                    "--mode",
-                    "lockstep",
-                    "--max-decisions",
-                    "1",
+            for game in ("minesweeper", "tetris", "pong", "snake"):
+                result = json.loads((output / f"random-{game}.json").read_text())
+                self.assertEqual([e["seed"] for e in result["episodes"]], [40, 41])
+                self.assertNotIn("decision_log", result["episodes"][0])
+                self.assertEqual(
+                    result["configuration"]["mode"],
+                    "lockstep" if game == "minesweeper" else "realtime",
+                )
+                traces = [
+                    json.loads((output / f"{name}-{game}.jsonl").read_text().splitlines()[0])
+                    for name in ("random", "heuristic")
                 ]
+                self.assertEqual(
+                    traces[0]["presented_action_ids"], traces[1]["presented_action_ids"]
+                )
+            # A repeated invocation cannot mix fresh data with an older run.
+            second = subprocess.run(
+                command, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": "src"}
             )
+            self.assertNotEqual(second.returncode, 0)
+            self.assertIn("empty", second.stderr)
 
-        episode = json.loads(output.getvalue())["episodes"][0]
-        self.assertIsNone(episode["piece_limit"])
-        self.assertIsNone(episode["max_seconds"])
-        self.assertEqual(episode["terminal_reason"], "decision_limit")
+    def test_config_file_uses_same_runner(self):
+        from dataclasses import asdict
 
+        from jevbench.config import RunConfig
 
-if __name__ == "__main__":
-    unittest.main()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / "output").mkdir()
+            (path / "output/.keep").touch()
+            config = RunConfig(
+                models=["random"], games=["minesweeper"], episodes=1, max_decisions=1
+            )
+            (path / "config.json").write_text(json.dumps(asdict(config)))
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "jevbench",
+                    "--config",
+                    str(path / "config.json"),
+                    "--output-dir",
+                    str(path / "output"),
+                ],
+                capture_output=True,
+                text=True,
+                env={**os.environ, "PYTHONPATH": "src"},
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue((path / "output/random-minesweeper.json").exists())

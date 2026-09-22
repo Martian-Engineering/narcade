@@ -1,162 +1,48 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  gameOrder,
-  games,
-  modelLeaders,
-  policies,
-  policyOrder,
-  results,
-  type PublishedGameKey,
-  type PolicyKey,
-} from "@/data/results";
-
-type View = "all" | PublishedGameKey;
-
-function formatLatency(value: number) {
-  if (value < 1) return "<1 ms";
-  if (value >= 1000) return `${(value / 1000).toFixed(2)} s`;
-  return `${Math.round(value)} ms`;
-}
-
-function rankForGame(game: PublishedGameKey, policy: PolicyKey, visible: PolicyKey[]) {
-  const score = results[game][policy].mean;
-  return visible.filter((candidate) => results[game][candidate].mean > score).length + 1;
-}
+import { useState } from "react";
+import { records, runLabel, gameNames, policyNames, isBaseline } from "@/data/results";
 
 export function Leaderboard() {
-  const [view, setView] = useState<View>("all");
+  const games = [...new Set(records.map((row) => row.game))];
+  const [game, setGame] = useState(games[0]);
   const [showBaselines, setShowBaselines] = useState(true);
-  const visible = useMemo(
-    () => policyOrder.filter((policy) => showBaselines || policies[policy].kind === "model"),
-    [showBaselines],
-  );
-
-  const ranked = useMemo(() => {
-    if (view === "all") return visible;
-    return [...visible].sort((a, b) => results[view][b].mean - results[view][a].mean);
-  }, [view, visible]);
-
+  const rows = records.filter((row) => row.game === game && (showBaselines || !isBaseline(row.policy)))
+    .sort((a, b) => b.aggregate.mean_score - a.aggregate.mean_score);
+  const protocol = records.find((row) => row.game === game)!.protocol;
+  const bestModel = Math.max(...rows.filter((row) => !isBaseline(row.policy)).map((row) => row.aggregate.mean_score));
   return (
     <div className="leaderboard-shell">
       <div className="leaderboard-controls">
-        <div className="view-tabs" aria-label="Leaderboard view">
-          {(["all", ...gameOrder] as View[]).map((item) => (
-            <button
-              className={view === item ? "active" : ""}
-              key={item}
-              onClick={() => setView(item)}
-              type="button"
-              aria-pressed={view === item}
-            >
-              {item === "all" ? "All games" : games[item].label}
-            </button>
-          ))}
+        <div className="view-tabs" aria-label="Game">
+          {games.map((id) => <button key={id} type="button" className={game === id ? "active" : ""}
+            aria-pressed={game === id} onClick={() => setGame(id)}>{gameNames[id] || id}</button>)}
         </div>
-        <button
-          className={`baseline-toggle ${showBaselines ? "active" : ""}`}
-          onClick={() => setShowBaselines((value) => !value)}
-          type="button"
-          aria-pressed={showBaselines}
-        >
-          <span aria-hidden="true" />
-          Baselines
+        <button type="button" className={`baseline-toggle ${showBaselines ? "active" : ""}`}
+          aria-pressed={showBaselines} onClick={() => setShowBaselines(!showBaselines)}>
+          <span aria-hidden="true" />Baselines
         </button>
       </div>
-
       <div className="table-wrap">
-        {view === "all" ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Policy</th>
-                {gameOrder.map((game) => (
-                  <th key={game}>
-                    {games[game].label}
-                    <small>{games[game].scoreLabel}</small>
-                  </th>
-                ))}
-                <th>Leads<small>learned models</small></th>
-              </tr>
-            </thead>
-            <tbody>
-              {ranked.map((policy) => {
-                const wins = gameOrder.filter((game) => modelLeaders[game] === policy).length;
-                return (
-                  <tr key={policy} className={policies[policy].kind === "baseline" ? "baseline-row" : ""}>
-                    <ModelCell policy={policy} />
-                    {gameOrder.map((game) => {
-                      const result = results[game][policy];
-                      const isLeader = modelLeaders[game] === policy;
-                      return (
-                        <td key={game} className={isLeader ? "leader-cell" : ""}>
-                          <div className="score-value">
-                            {games[game].format(result.mean)}
-                            {isLeader && <span className="leader-chip">lead</span>}
-                          </div>
-                          <span className="score-range">
-                            {games[game].format(result.min)}–{games[game].format(result.max)} range
-                          </span>
-                        </td>
-                      );
-                    })}
-                    <td><span className="wins-count">{policies[policy].kind === "model" ? wins : "—"}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th className="rank-column">Rank</th>
-                <th>Policy</th>
-                <th>Mean score<small>{games[view].scoreLabel}</small></th>
-                <th>Episode range</th>
-                <th>Success</th>
-                <th>P50 latency<small>end to end</small></th>
-              </tr>
-            </thead>
-            <tbody>
-              {ranked.map((policy) => {
-                const result = results[view][policy];
-                const rank = rankForGame(view, policy, visible);
-                return (
-                  <tr key={policy} className={policies[policy].kind === "baseline" ? "baseline-row" : ""}>
-                    <td className="rank-cell">{String(rank).padStart(2, "0")}</td>
-                    <ModelCell policy={policy} />
-                    <td><div className="score-value">{games[view].format(result.mean)}</div></td>
-                    <td className="numeric-muted">{games[view].format(result.min)}–{games[view].format(result.max)}</td>
-                    <td className="numeric-muted">{Math.round(result.success * 100)}%</td>
-                    <td className="numeric-muted">{formatLatency(result.p50)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+        <table>
+          <thead><tr><th>Policy</th><th>Mean score</th><th>Range</th><th>Success</th>
+            <th>P50 latency</th>{game === "minesweeper" && <th>Solve time</th>}</tr></thead>
+          <tbody>{rows.map((row) => (
+            <tr key={row.policy} className={isBaseline(row.policy) ? "baseline-row" : ""}>
+              <th scope="row"><strong>{policyNames[row.policy] || row.policy}</strong>
+                <small>{"hardware" in row.model ? String(row.model.hardware || row.model.kind) : row.model.kind}</small></th>
+              <td className={row.aggregate.mean_score === bestModel && !isBaseline(row.policy) ? "leader-cell" : ""}>
+                {row.aggregate.mean_score.toFixed(2)}</td>
+              <td>{row.aggregate.min_score}–{row.aggregate.max_score}</td>
+              <td>{Math.round(row.aggregate.success_rate * 100)}%</td>
+              <td>{row.aggregate.p50_latency_ms.toFixed(1)} ms</td>
+              {game === "minesweeper" && <td>{row.aggregate.mean_solve_seconds == null ? "—" : `${Number(row.aggregate.mean_solve_seconds).toFixed(2)} s`}</td>}
+            </tr>
+          ))}</tbody>
+        </table>
       </div>
-      <div className="table-note">
-        <span>Run 001 · 5 learned lanes · 3 seeds</span>
-        <span>↑ Higher is better</span>
-      </div>
+      <div className="table-note"><span>{runLabel}</span><span>Protocol {protocol.version} · {protocol.mode} · {protocol.difficulty}</span></div>
+      <div className="table-note"><span>Higher scores are better. Solve time includes cleared boards only.</span></div>
     </div>
-  );
-}
-
-function ModelCell({ policy }: { policy: PolicyKey }) {
-  const meta = policies[policy];
-  return (
-    <th className="model-cell" scope="row">
-      <span className="model-mark" style={{ backgroundColor: meta.color }} aria-hidden="true" />
-      <span>
-        <strong>{meta.label}</strong>
-        <small>{meta.detail}</small>
-      </span>
-      {meta.kind === "baseline" && <span className="anchor-chip">anchor</span>}
-      {meta.variant && <span className="variant-chip">variant</span>}
-    </th>
   );
 }

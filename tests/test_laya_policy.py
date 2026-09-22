@@ -50,7 +50,6 @@ class LayaPolicyTests(unittest.TestCase):
 
         self.assertEqual(decision.action_id, "A2")
         self.assertEqual(decision.input_tokens, 42)
-        self.assertEqual(decision.probabilities, {"A1": 0.25, "A2": 0.75})
         self.assertEqual(policy.metadata()["resolved_model"], "laya-rl-agent")
         self.assertEqual(policy.metadata()["provider"], "laya-local")
         self.assertTrue(policy.metadata()["hardware"].endswith("· mps"))

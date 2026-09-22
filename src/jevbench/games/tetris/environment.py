@@ -174,23 +174,12 @@ class Tetris:
     def observation(self) -> Observation:
         return Observation(
             state={
-                "game": "Tetris",
                 "board": self._render_board(),
                 "board_legend": "# locked block, @ active piece, . empty",
                 "board_order": "top row first; rows 0-19 and columns 0-9",
-                "active_piece": {
-                    "type": self.current,
-                    "rotation": self.rotation,
-                    "row": self.row,
-                    "column": self.column,
-                    "cells": [list(cell) for cell in self.active_cells],
-                },
+                "active_piece": self.current,
                 "next_piece": self.next_piece,
-                "score": self.score,
-                "lines": self.lines,
-                "pieces_locked": self.pieces,
                 "mode": self.mode,
-                "elapsed_seconds": round(self.elapsed_seconds, 4),
                 "control_interval_ms": round(self.decision_deadline_seconds * 1000),
             },
             instructions=(
@@ -205,8 +194,7 @@ class Tetris:
     def legal_actions(self) -> list[Action]:
         return [] if self.done else list(PLAYER_ACTIONS)
 
-    def step(self, action_id: str, latency_ms: float = 0.0) -> None:
-        del latency_ms
+    def step(self, action_id: str) -> None:
         if action_id not in {action.id for action in PLAYER_ACTIONS}:
             raise ValueError(f"illegal Tetris action: {action_id}")
 

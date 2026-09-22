@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import random
 import statistics
@@ -9,7 +8,10 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from .core import Action, Game, Observation, Policy, PolicyError, PolicyTimeout
+from .core import Action, Game, Policy, PolicyError, PolicyTimeout
+
+PROTOCOL = "0.5.0"
+FAILURES = ("invalid_actions", "timeouts", "policy_errors")
 
 
 def run_episode(
@@ -18,160 +20,79 @@ def run_episode(
     *,
     seed: int,
     max_decisions: int | None,
-    record_decisions: bool = False,
+    trace: Callable[[dict], None] | None = None,
+    latency_samples: list[float] | None = None,
 ) -> dict[str, Any]:
+    started_episode = time.monotonic()
     latencies: list[float] = []
-    input_tokens = 0
-    output_tokens = 0
-    invalid_actions = 0
-    timeouts = 0
-    policy_errors = 0
-    decisions: list[dict[str, Any]] = []
-    entropies: list[float] = []
-    confidences: list[float] = []
-    override_reason: str | None = None
-
+    failures = dict.fromkeys(FAILURES, 0)
+    tokens = {"input_tokens": 0, "output_tokens": 0}
+    reason = None
     while not game.done and (max_decisions is None or len(latencies) < max_decisions):
         observation = game.observation()
         actions = _ordered_actions(game.legal_actions(), game.id, seed, len(latencies))
         if not actions:
-            override_reason = "empty_action_set"
-            policy_errors += 1
+            failures["policy_errors"] += 1
+            reason = "empty_action_set"
             break
-
+        decision = None
+        error = None
         started = time.perf_counter()
         try:
             decision = policy.decide(game, observation, actions)
-        except PolicyTimeout:
-            latency_ms = (time.perf_counter() - started) * 1000
-            latencies.append(latency_ms)
-            game.advance_time(latency_ms)
-            timeouts += 1
-            if not game.done:
-                override_reason = "policy_timeout"
-            if record_decisions:
-                decisions.append(
-                    _decision_record(
-                        observation,
-                        actions,
-                        selected_action_id=None,
-                        latency_ms=latency_ms,
-                        input_tokens=0,
-                        output_tokens=0,
-                        valid=False,
-                        error="policy_timeout",
-                        probabilities=None,
-                        confidence=None,
-                        step=len(latencies),
-                    )
-                )
-            break
-        except PolicyError:
-            latency_ms = (time.perf_counter() - started) * 1000
-            latencies.append(latency_ms)
-            game.advance_time(latency_ms)
-            policy_errors += 1
-            if not game.done:
-                override_reason = "policy_error"
-            if record_decisions:
-                decisions.append(
-                    _decision_record(
-                        observation,
-                        actions,
-                        selected_action_id=None,
-                        latency_ms=latency_ms,
-                        input_tokens=0,
-                        output_tokens=0,
-                        valid=False,
-                        error="policy_error",
-                        probabilities=None,
-                        confidence=None,
-                        step=len(latencies),
-                    )
-                )
-            break
-        latency_ms = (time.perf_counter() - started) * 1000
-        latencies.append(latency_ms)
-        game.advance_time(latency_ms)
-        input_tokens += decision.input_tokens
-        output_tokens += decision.output_tokens
-        entropy = _entropy_bits(decision.probabilities)
-        if entropy is not None:
-            entropies.append(entropy)
-        if decision.confidence is not None:
-            confidences.append(decision.confidence)
-
-        legal_ids = {action.id for action in actions}
-        valid = decision.action_id in legal_ids
-        if record_decisions:
-            decisions.append(
-                _decision_record(
-                    observation,
-                    actions,
-                    selected_action_id=decision.action_id,
-                    latency_ms=latency_ms,
-                    input_tokens=decision.input_tokens,
-                    output_tokens=decision.output_tokens,
-                    valid=valid,
-                    error=None if valid else "invalid_action",
-                    probabilities=decision.probabilities,
-                    confidence=decision.confidence,
-                    step=len(latencies),
-                )
+        except PolicyError as exception:
+            timeout = isinstance(exception, PolicyTimeout)
+            failures["timeouts" if timeout else "policy_errors"] += 1
+            error = "policy_timeout" if timeout else "policy_error"
+        latency = (time.perf_counter() - started) * 1000
+        latencies.append(latency)
+        game.advance_time(latency)
+        if decision is not None:
+            for key in tokens:
+                tokens[key] += getattr(decision, key)
+            if decision.action_id not in {action.id for action in actions}:
+                failures["invalid_actions"] += 1
+                error = "invalid_action"
+        if trace is not None:
+            trace(
+                {
+                    "seed": seed,
+                    "step": len(latencies),
+                    "state": observation.state,
+                    "instructions": observation.instructions,
+                    "presented_action_ids": [action.id for action in actions],
+                    "selected_action_id": decision.action_id if decision else None,
+                    "latency_ms": round(latency, 3),
+                    "error": error,
+                }
             )
-        if not valid:
-            invalid_actions += 1
+        if error:
             if not game.done:
-                override_reason = "invalid_action"
+                reason = error
             break
-
         if not game.done:
-            game.step(decision.action_id, latency_ms=latency_ms)
-
-    if not game.done and override_reason is None and max_decisions is not None:
-        override_reason = "decision_limit"
-
-    game_result = game.result()
-    simulated_seconds = float(game_result.get("simulated_seconds", 0.0))
-    if game_result.get("mode") == "realtime":
-        game_result["score_per_second"] = (
-            round(float(game_result["score"]) / simulated_seconds, 6)
-            if simulated_seconds > 0
-            else None
-        )
-    if override_reason:
-        game_result["success"] = False
-        game_result["terminal_reason"] = override_reason
-
-    episode = {
+            assert decision is not None
+            game.step(decision.action_id)
+    if not game.done and reason is None:
+        reason = "decision_limit"
+    result = game.result()
+    if reason:
+        result.update(success=False, terminal_reason=reason)
+    elapsed = time.monotonic() - started_episode
+    if latency_samples is not None:
+        latency_samples.extend(latencies)
+    return {
         "seed": seed,
-        "game": game.id,
-        "policy": policy.name,
-        "policy_metadata": policy.metadata(),
-        **game_result,
+        **result,
         "decisions": len(latencies),
-        "invalid_actions": invalid_actions,
-        "timeouts": timeouts,
-        "policy_errors": policy_errors,
-        "latency_ms": {
-            "mean": round(statistics.fmean(latencies), 3) if latencies else 0.0,
-            "p50": round(statistics.median(latencies), 3) if latencies else 0.0,
-            "p95": round(_percentile(latencies, 0.95), 3) if latencies else 0.0,
-            "max": round(max(latencies), 3) if latencies else 0.0,
-        },
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "mean_probability_entropy_bits": (
-            round(statistics.fmean(entropies), 6) if entropies else None
-        ),
-        "mean_confidence": round(statistics.fmean(confidences), 6) if confidences else None,
-        "_latency_samples": latencies,
-        "_entropy_samples": entropies,
-        "_confidence_samples": confidences,
+        **failures,
+        **tokens,
+        "elapsed_seconds": round(elapsed, 6),
+        "solve_seconds": round(elapsed, 6)
+        if game.id == "minesweeper" and result["success"]
+        else None,
+        "latency_ms": latency_summary(latencies),
     }
-    if record_decisions:
-        episode["decision_log"] = decisions
-    return episode
 
 
 def run_benchmark(
@@ -183,81 +104,56 @@ def run_benchmark(
     first_seed: int,
     episodes: int,
     max_decisions: int | None,
-    record_decisions: bool = False,
+    trace: Callable[[dict], None] | None = None,
 ) -> dict[str, Any]:
     runs = []
-    for offset in range(episodes):
-        seed = first_seed + offset
+    latencies: list[float] = []
+    metadata = {}
+    for seed in range(first_seed, first_seed + episodes):
+        policy = policy_factory(seed)
         runs.append(
             run_episode(
                 game_factory(seed),
-                policy_factory(seed),
+                policy,
                 seed=seed,
                 max_decisions=max_decisions,
-                record_decisions=record_decisions,
+                trace=trace,
+                latency_samples=latencies,
             )
         )
-
-    scores = [float(run["score"]) for run in runs]
-    latencies = [float(sample) for run in runs for sample in run["_latency_samples"]]
-    entropies = [float(sample) for run in runs for sample in run["_entropy_samples"]]
-    confidences = [float(sample) for run in runs for sample in run["_confidence_samples"]]
-    for run in runs:
-        del run["_latency_samples"]
-        del run["_entropy_samples"]
-        del run["_confidence_samples"]
-
-    realtime_runs = [run for run in runs if run.get("mode") == "realtime"]
-    total_decisions = sum(int(run["decisions"]) for run in runs)
-    total_late_decisions = sum(int(run.get("late_decisions", 0)) for run in runs)
-
+        metadata = policy.metadata()
+    scores = [run["score"] for run in runs]
+    solved = [run["solve_seconds"] for run in runs if run["solve_seconds"] is not None]
     aggregate = {
         "score_name": runs[0]["score_name"],
         "mean_score": round(statistics.fmean(scores), 3),
-        "median_score": round(statistics.median(scores), 3),
         "min_score": min(scores),
         "max_score": max(scores),
-        "success_rate": round(sum(bool(run["success"]) for run in runs) / episodes, 4),
-        "mean_decisions": round(statistics.fmean(int(run["decisions"]) for run in runs), 3),
-        "p50_latency_ms": round(statistics.median(latencies), 3) if latencies else 0.0,
-        "p95_latency_ms": round(_percentile(latencies, 0.95), 3) if latencies else 0.0,
-        "invalid_actions": sum(int(run["invalid_actions"]) for run in runs),
-        "timeouts": sum(int(run["timeouts"]) for run in runs),
-        "policy_errors": sum(int(run["policy_errors"]) for run in runs),
-        "input_tokens": sum(int(run["input_tokens"]) for run in runs),
-        "output_tokens": sum(int(run["output_tokens"]) for run in runs),
-        "mean_probability_entropy_bits": (
-            round(statistics.fmean(entropies), 6) if entropies else None
-        ),
-        "mean_confidence": (round(statistics.fmean(confidences), 6) if confidences else None),
+        "success_rate": round(statistics.fmean(run["success"] for run in runs), 4),
+        "mean_decisions": round(statistics.fmean(run["decisions"] for run in runs), 3),
+        "p50_latency_ms": latency_summary(latencies)["p50"],
+        "p95_latency_ms": latency_summary(latencies)["p95"],
+        "mean_elapsed_seconds": round(statistics.fmean(run["elapsed_seconds"] for run in runs), 6),
+        "mean_solve_seconds": round(statistics.fmean(solved), 6) if solved else None,
+        **{
+            key: sum(run[key] for run in runs)
+            for key in (*FAILURES, "input_tokens", "output_tokens")
+        },
     }
-    if realtime_runs:
-        score_rates = [
-            float(run["score_per_second"])
-            for run in realtime_runs
-            if run.get("score_per_second") is not None
-        ]
+    if runs[0].get("mode") == "realtime":
+        decisions = sum(run["decisions"] for run in runs)
+        late = sum(run.get("late_decisions", 0) for run in runs)
         aggregate.update(
-            {
-                "mean_simulated_seconds": round(
-                    statistics.fmean(float(run["simulated_seconds"]) for run in realtime_runs),
-                    3,
-                ),
-                "mean_score_per_second": (
-                    round(statistics.fmean(score_rates), 6) if score_rates else None
-                ),
-                "late_decisions": total_late_decisions,
-                "late_decision_rate": (
-                    round(total_late_decisions / total_decisions, 6) if total_decisions else 0.0
-                ),
-            }
+            mean_simulated_seconds=round(
+                statistics.fmean(run["simulated_seconds"] for run in runs), 3
+            ),
+            late_decision_rate=round(late / decisions, 6) if decisions else 0,
         )
-
     return {
-        "benchmark_version": "0.4.0",
+        "benchmark_version": PROTOCOL,
         "game": game_id,
         "policy": policy_name,
-        "policy_metadata": _unique_metadata(runs),
+        "policy_metadata": metadata,
         "first_seed": first_seed,
         "episode_count": episodes,
         "aggregate": aggregate,
@@ -265,70 +161,18 @@ def run_benchmark(
     }
 
 
-def _percentile(values: list[float], percentile: float) -> float:
+def latency_summary(values: list[float]) -> dict[str, float]:
     ordered = sorted(values)
-    index = max(0, min(len(ordered) - 1, math.ceil(percentile * len(ordered)) - 1))
-    return ordered[index]
-
-
-def _decision_record(
-    observation: Observation,
-    actions: list[Action],
-    *,
-    selected_action_id: str | None,
-    latency_ms: float,
-    input_tokens: int,
-    output_tokens: int,
-    valid: bool,
-    error: str | None,
-    probabilities: dict[str, float] | None,
-    confidence: float | None,
-    step: int,
-) -> dict[str, Any]:
-    model_input = {
-        "state": observation.state,
-        "instructions": observation.instructions,
-        "criteria": {action.id: action.description for action in actions},
-    }
-    encoded = json.dumps(model_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return {
-        "step": step,
-        "model_input_sha256": hashlib.sha256(encoded).hexdigest(),
-        "presented_action_ids": [action.id for action in actions],
-        "selected_action_id": selected_action_id,
-        "valid": valid,
-        "error": error,
-        "latency_ms": round(latency_ms, 3),
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "probabilities": probabilities,
-        "confidence": confidence,
-        "probability_entropy_bits": _entropy_bits(probabilities),
+        "p50": round(statistics.median(ordered), 3) if ordered else 0,
+        "p95": round(ordered[math.ceil(len(ordered) * 0.95) - 1], 3) if ordered else 0,
     }
-
-
-def _unique_metadata(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    unique: dict[str, dict[str, Any]] = {}
-    for run in runs:
-        metadata = run["policy_metadata"]
-        key = json.dumps(metadata, sort_keys=True, separators=(",", ":"))
-        unique[key] = metadata
-    return list(unique.values())
 
 
 def _ordered_actions(actions: list[Action], game_id: str, seed: int, step: int) -> list[Action]:
     ordered = list(actions)
-    material = f"{game_id}:{seed}:{step}".encode()
-    order_seed = int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
+    order_seed = int.from_bytes(
+        hashlib.sha256(f"{game_id}:{seed}:{step}".encode()).digest()[:8], "big"
+    )
     random.Random(order_seed).shuffle(ordered)
     return ordered
-
-
-def _entropy_bits(probabilities: dict[str, float] | None) -> float | None:
-    if not probabilities:
-        return None
-    positive = [probability for probability in probabilities.values() if probability > 0]
-    total = sum(positive)
-    if total <= 0:
-        return None
-    return -sum((probability / total) * math.log2(probability / total) for probability in positive)

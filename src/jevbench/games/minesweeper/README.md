@@ -4,4 +4,4 @@ The environment uses a seeded 9 by 9 board and automatically reveals the center 
 
 Difficulty controls the mine count: easy has 6, medium has 8, and hard has 10. The primary score is the number of safe squares revealed before a mine is hit or the board is cleared. The maximum score is `81 - mine_count`.
 
-Each action reveals one covered coordinate. The model sees only the visible board, mine count, and score.
+Each action reveals one covered coordinate. The model sees only the visible board and mine count.

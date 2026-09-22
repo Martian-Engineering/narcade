@@ -54,7 +54,6 @@ class Snake:
         seed: int,
         difficulty: str = "medium",
         mode: str = "lockstep",
-        max_seconds: float | None = None,
     ):
         if difficulty not in TICK_SECONDS:
             raise ValueError(f"unknown Snake difficulty: {difficulty}")
@@ -63,9 +62,6 @@ class Snake:
         self.seed = seed
         self.difficulty = difficulty
         self.mode = mode
-        # Accepted for the shared game constructor, but intentionally ignored.
-        # Snake ends only when its rules engine records a loss or a filled board.
-        del max_seconds
         self.tick_seconds = TICK_SECONDS[difficulty]
         self._rng = random.Random(seed)
         center_x, center_y = self.width // 2, self.height // 2
@@ -122,50 +118,20 @@ class Snake:
     def _non_reversing_directions(self) -> list[Direction]:
         return [direction for direction in Direction if direction != self.direction.opposite]
 
-    def _board_text(self) -> str:
-        cells = [["." for _ in range(self.width)] for _ in range(self.height)]
-        if self.food is not None:
-            cells[self.food[1]][self.food[0]] = "F"
-        for x, y in self.snake[1:]:
-            cells[y][x] = "s"
-        head_x, head_y = self.head
-        cells[head_y][head_x] = "H"
-        return "\n".join("".join(row) for row in cells)
-
     def observation(self) -> Observation:
-        head_x, head_y = self.head
-        food_offset = None
-        if self.food is not None:
-            food_offset = {
-                "x": self.food[0] - head_x,
-                "y": self.food[1] - head_y,
-            }
         return Observation(
             state={
-                "game": "Snake",
-                "difficulty": self.difficulty,
-                "grid_size": {"width": self.width, "height": self.height},
-                "coordinate_system": "origin top-left; x increases right; y increases down",
-                "board": self._board_text(),
-                "board_legend": "H head, s body, F food, . empty",
-                "tick": self.ticks,
-                "score": self.score,
-                "snake_head": list(self.head),
-                "snake_body": [list(cell) for cell in self.snake[1:]],
-                "snake_length": len(self.snake),
+                "grid_size": [self.width, self.height],
+                "snake": [list(cell) for cell in self.snake],
                 "direction": self.direction.value,
-                "mode": self.mode,
-                "elapsed_seconds": round(self.elapsed_seconds, 4),
+                "food": list(self.food) if self.food is not None else None,
                 "tick_interval_ms": round(self.tick_seconds * 1000),
-                "food_position": list(self.food) if self.food is not None else None,
-                "food_offset_from_head": food_offset,
             },
             instructions=(
-                "You are the Snake player. Choose exactly one absolute direction: UP, DOWN, "
-                "LEFT, or RIGHT. The game engine—not the player—applies the move, handles food "
-                "and growth, and ends the game on a wall or body collision. A direct reversal "
-                "is ignored by the engine, so the snake continues in its current direction. "
-                "In real-time mode, it also continues in its current direction while you decide."
+                "Play Snake. Coordinates are [x,y], origin top-left, y increases down. "
+                "The snake is ordered head to tail. Choose UP, DOWN, LEFT, or RIGHT. "
+                "Eat food to grow; walls and body collisions end the game. "
+                "Reversals are ignored. In realtime, movement continues while you decide."
             ),
         )
 
@@ -176,8 +142,7 @@ class Snake:
             Action(direction.value, f"Move {direction.value.lower()}") for direction in Direction
         ]
 
-    def step(self, action_id: str, latency_ms: float = 0.0) -> None:
-        del latency_ms
+    def step(self, action_id: str) -> None:
         try:
             requested_direction = Direction(action_id)
         except ValueError as error:

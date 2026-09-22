@@ -15,8 +15,8 @@ Real-time mode is the leaderboard track. A direction received before the next ti
 tick. While an answer is
 late, the snake continues in its previous direction for every missed tick; those missed ticks and
 late decisions are reported. Neither timing mode ends on a wall-clock deadline; play continues
-until the engine records a collision or a filled board. There is no default model-call cap for
-Snake. An operator may explicitly set `--max-decisions` for debugging, but such a run ends with
+until the engine records a collision or a filled board. The suite defaults to a 2,000-decision safety cap, adjustable with
+`--max-decisions`. A capped run ends with
 `decision_limit` and is not a completed Snake episode. Lockstep remains available as an
 action-quality diagnostic. Models,
 the random baseline, and the deterministic pathfinding baseline receive the same seeds and action

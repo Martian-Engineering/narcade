@@ -27,8 +27,6 @@ class PolicyDecision:
     action_id: str
     input_tokens: int = 0
     output_tokens: int = 0
-    probabilities: dict[str, float] | None = None
-    confidence: float | None = None
 
 
 class Game(Protocol):
@@ -46,7 +44,7 @@ class Game(Protocol):
 
     def advance_time(self, latency_ms: float) -> None: ...
 
-    def step(self, action_id: str, latency_ms: float = 0.0) -> None: ...
+    def step(self, action_id: str) -> None: ...
 
     def heuristic_action_id(self) -> str: ...
 

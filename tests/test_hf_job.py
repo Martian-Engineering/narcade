@@ -1,110 +1,79 @@
 from __future__ import annotations
 
-import argparse
 import importlib.util
-import os
+import json
+import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
-from types import ModuleType
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-
-def _load_job_runner() -> ModuleType:
-    path = Path(__file__).parents[1] / "hf_space" / "job_runner.py"
-    spec = importlib.util.spec_from_file_location("narcade_hf_job_runner", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"could not load {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-job_runner = _load_job_runner()
-GAMES = job_runner.GAMES
-MODELS = job_runner.MODELS
-_csv = job_runner._csv
-_run_command = job_runner._run_command
-_validate = job_runner._validate
-_benchmark_error = job_runner._benchmark_error
-
-
-def _args(**overrides: object) -> argparse.Namespace:
-    values = {
-        "episodes": 3,
-        "seed": 100,
-        "difficulty": "medium",
-        "mode": "auto",
-        "max_seconds": None,
-        "max_pieces": 200,
-        "max_decisions": 2_000,
-    }
-    values.update(overrides)
-    return argparse.Namespace(**values)
+from jevbench.config import RunConfig
 
 
 class HuggingFaceJobTests(unittest.TestCase):
-    def test_csv_rejects_unknown_and_duplicate_values(self) -> None:
-        with self.assertRaisesRegex(ValueError, "unknown models"):
-            _csv("jev,nope", choices=MODELS, field="models")
-        with self.assertRaisesRegex(ValueError, "duplicates"):
-            _csv("jev,jev", choices=MODELS, field="models")
-
-    def test_hosted_lanes_require_job_secrets_before_a_run(self) -> None:
-        with (
-            patch.dict(os.environ, {}, clear=True),
-            self.assertRaisesRegex(ValueError, "TYPESAFE_API_KEY, CODIV_API_KEY"),
+    def test_shared_config_validates_before_launch(self):
+        for config in (
+            RunConfig(models=["bogus"]),
+            RunConfig(episodes=0),
+            RunConfig(max_seconds=float("nan")),
+            RunConfig(games=["pong", "pong"]),
         ):
-            _validate(_args(), ["jev", "openjev"], ["tetris"])
+            with self.assertRaises(ValueError):
+                config.validate()
+        options = RunConfig(mode="realtime", max_seconds=30, max_pieces=200)
+        self.assertEqual(options.game_options("minesweeper")["mode"], "lockstep")
+        self.assertIsNone(options.game_options("snake")["max_seconds"])
+        self.assertEqual(options.game_options("pong")["max_seconds"], 30)
+        self.assertEqual(options.game_options("tetris")["piece_limit"], 200)
 
-    def test_realtime_suite_rejects_minesweeper(self) -> None:
-        with self.assertRaisesRegex(ValueError, "Minesweeper"):
-            _validate(_args(mode="realtime"), ["laya"], list(GAMES))
+    def test_local_models_send_no_hosted_secrets(self):
+        with patch.dict("os.environ", {"TYPESAFE_API_KEY": "private"}, clear=True):
+            self.assertEqual(RunConfig(models=["kev"]).secrets(), {})
+            self.assertEqual(RunConfig(models=["jev"]).secrets(), {"TYPESAFE_API_KEY": "private"})
+            with self.assertRaisesRegex(ValueError, "CODIV_API_KEY"):
+                RunConfig(models=["openjev"]).secrets()
 
-    def test_command_applies_time_cap_only_to_supported_games(self) -> None:
-        args = _args(max_seconds=30.0, max_decisions=50)
-        with tempfile.TemporaryDirectory() as directory:
-            pong = _run_command(
-                model="laya",
-                game="pong",
-                args=args,
-                output=Path(directory) / "pong.json",
-            )
-            snake = _run_command(
-                model="laya",
-                game="snake",
-                args=args,
-                output=Path(directory) / "snake.json",
-            )
-        self.assertIn("--max-seconds", pong)
-        self.assertNotIn("--max-seconds", snake)
-        self.assertIn("--max-decisions", snake)
+    def test_launcher_mounts_shared_config_and_downloads_failed_job_outputs(self):
+        mounted = []
 
-    def test_command_applies_piece_cap_only_to_tetris(self) -> None:
-        args = _args()
-        with tempfile.TemporaryDirectory() as directory:
-            tetris = _run_command(
-                model="laya",
-                game="tetris",
-                args=args,
-                output=Path(directory) / "tetris.json",
-            )
-            pong = _run_command(
-                model="laya",
-                game="pong",
-                args=args,
-                output=Path(directory) / "pong.json",
-            )
-        self.assertIn("--max-pieces", tetris)
-        self.assertNotIn("--max-pieces", pong)
+        def mount(path, target, **kwargs):
+            if target == "/workspace":
+                mounted.append(json.loads((path / "config.json").read_text()))
+                self.assertTrue((path / "bootstrap_job.sh").exists())
+            return types.SimpleNamespace(source="test", path=target.strip("/"))
 
-    def test_model_call_failures_in_result_fail_the_lane(self) -> None:
-        self.assertEqual(
-            _benchmark_error({"aggregate": {"timeouts": 1, "policy_errors": 2}}),
-            "benchmark reported model-call failures: timeouts=1, policy_errors=2",
+        hub = types.SimpleNamespace(
+            sync_job_volume=Mock(side_effect=mount),
+            run_job=Mock(return_value=types.SimpleNamespace(id="job", url="job-url")),
+            wait_for_job=Mock(
+                return_value=types.SimpleNamespace(status=types.SimpleNamespace(stage="ERROR"))
+            ),
+            sync_bucket=Mock(),
         )
-        self.assertIsNone(_benchmark_error({"aggregate": {"timeouts": 0, "policy_errors": 0}}))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        with patch.dict(sys.modules, {"huggingface_hub": hub}):
+            spec = importlib.util.spec_from_file_location("launcher", Path("scripts/run_hf_job.py"))
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch.object(module.subprocess, "run"),
+            patch.dict("os.environ", {}, clear=True),
+            self.assertRaisesRegex(SystemExit, "ERROR"),
+        ):
+            module.main(
+                [
+                    "--models",
+                    "kev",
+                    "--episodes",
+                    "2",
+                    "--max-decisions",
+                    "7",
+                    "--output-dir",
+                    directory,
+                ]
+            )
+        self.assertEqual(mounted[0]["max_decisions"], 7)
+        self.assertEqual(hub.run_job.call_args.kwargs["secrets"], {})
+        hub.sync_bucket.assert_called_once()

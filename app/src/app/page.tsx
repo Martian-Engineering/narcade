@@ -22,8 +22,8 @@ export default function Home() {
           {" "}<em>C</em>hoice <em>A</em>cross <em>D</em>iscrete <em>E</em>nvironments) measures how
           well decision models play deterministic games. Every policy receives the same seeds,
           rules, structured state, and legal actions. Game engines assign objective scores; no
-          judge model is involved. Published results currently cover Minesweeper and Pong while
-          Tetris and Snake are rerun under corrected control protocols. Full details live on GitHub.
+          judge model is involved. Results identify their protocol and timing mode. Original observations are retained as
+          the baseline for measuring the simplified inputs. Full details live on GitHub.
         </p>
 
         <section className="results" aria-labelledby="results-title">
@@ -32,7 +32,7 @@ export default function Home() {
         </section>
 
         <footer>
-          <span>NARCADE / RUN 001</span>
+          <span>NARCADE</span>
           <a href="https://martian.engineering" target="_blank" rel="noreferrer">
             Made by Martian Engineering ↗
           </a>

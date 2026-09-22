@@ -31,7 +31,7 @@ class FakeResponse:
 
 class SystemOnePolicyTests(unittest.TestCase):
     @patch("urllib.request.urlopen")
-    def test_choice_usage_and_probabilities_are_parsed(self, urlopen) -> None:
+    def test_choice_and_usage_are_parsed(self, urlopen) -> None:
         urlopen.return_value = FakeResponse(
             {
                 "answers": {
@@ -60,8 +60,6 @@ class SystemOnePolicyTests(unittest.TestCase):
         )
         self.assertEqual(decision.action_id, "A1")
         self.assertEqual(decision.input_tokens, 123)
-        self.assertEqual(decision.probabilities, {"A1": 0.8, "A2": 0.2})
-        self.assertEqual(decision.confidence, 0.8)
         self.assertEqual(policy.metadata()["resolved_model"], "jev-1.13.0")
         self.assertEqual(policy.metadata()["endpoint"], "https://api.typesafe.ai/v1/systemone")
 

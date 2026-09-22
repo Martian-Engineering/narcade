@@ -113,20 +113,8 @@ thead th { color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing:
 th small, .model-cell small { display: block; margin-top: 4px; color: var(--dim); font-size: 11px; font-weight: 400; letter-spacing: .03em; text-transform: uppercase; }
 tbody tr { transition: background 150ms ease; }
 tbody tr:hover { background: rgba(255,255,255,.025); }
-.model-cell { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; min-width: 176px; }
-.model-mark { width: 4px; height: 30px; box-shadow: 0 0 9px currentColor; }
-.model-cell strong { display: block; color: var(--ink); font-size: 16px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.score-value { display: flex; align-items: center; gap: 8px; color: var(--ink); font-family: var(--font-display), monospace; font-size: 14px; font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: .025em; }
-.score-range, .numeric-muted { color: var(--muted); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: .035em; text-transform: uppercase; }
-.leader-chip { padding: 2px 6px; color: var(--bg); background: var(--green); font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; box-shadow: 0 0 8px rgba(116,255,134,.2); }
 .leader-cell { background: rgba(116,255,134,.025); }
-.wins-count { color: var(--green); font-family: var(--font-display), monospace; font-size: 14px; font-weight: 400; font-variant-numeric: tabular-nums; text-shadow: 0 0 9px rgba(116,255,134,.25); }
-.anchor-chip, .variant-chip { padding: 2px 5px; color: var(--dim); border: 1px solid var(--line-bright); font-size: 10px; font-weight: 500; text-transform: uppercase; }
-.variant-chip { color: #c9a7ff; border-color: rgba(201,167,255,.42); }
 .baseline-row { background: rgba(255,255,255,.012); }
-.baseline-row .model-cell strong { color: var(--muted); }
-.rank-column { width: 74px; }
-.rank-cell { color: var(--green); font-family: var(--font-display), monospace; font-size: 14px; font-weight: 400; font-variant-numeric: tabular-nums; }
 .table-note { display: flex; justify-content: space-between; gap: 16px; padding: 11px 16px; color: var(--dim); font-size: 12px; text-transform: uppercase; }
 
 footer { display: flex; justify-content: space-between; gap: 24px; padding: 20px 0 34px; color: var(--dim); font-size: 12px; text-transform: uppercase; }

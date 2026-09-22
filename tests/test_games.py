@@ -123,7 +123,7 @@ class TetrisTests(unittest.TestCase):
         original_column = game.column
 
         game.advance_time(100)
-        game.step("LEFT", latency_ms=100)
+        game.step("LEFT")
 
         self.assertEqual(game.column, original_column - 1)
         self.assertEqual(game.row, 1)
@@ -136,7 +136,7 @@ class TetrisTests(unittest.TestCase):
         original_column = game.column
 
         game.advance_time(600)
-        game.step("LEFT", latency_ms=600)
+        game.step("LEFT")
 
         self.assertEqual(game.column, original_column - 1)
         self.assertEqual(game.row, 3)
@@ -155,7 +155,7 @@ class TetrisTests(unittest.TestCase):
 
         game.advance_time(300)
         spawned_column = game.column
-        game.step("LEFT", latency_ms=300)
+        game.step("LEFT")
 
         self.assertEqual(game.pieces, 1)
         self.assertEqual(game.column, spawned_column)
@@ -205,7 +205,7 @@ class PongTests(unittest.TestCase):
         game._advance = advanced.append
 
         game.advance_time(30)
-        game.step("down", latency_ms=30)
+        game.step("down")
 
         self.assertEqual(advanced, [0.03, 0.07])
         self.assertEqual(game.agent_command, "down")
@@ -268,20 +268,12 @@ class SnakeTests(unittest.TestCase):
         self.assertTrue(game.done)
         self.assertEqual(game.result()["terminal_reason"], "wall")
 
-    def test_wall_clock_limit_never_ends_snake(self) -> None:
-        game = Snake(1, "easy", mode="realtime", max_seconds=0.001)
-
-        game.advance_time(1)
-
-        self.assertFalse(game.done)
-        self.assertEqual(game.result()["terminal_reason"], "playing")
-
     def test_realtime_fast_answer_controls_next_tick(self) -> None:
         game = Snake(1, "easy", mode="realtime")
         game.food = (0, 0)
 
         game.advance_time(20)
-        game.step("UP", latency_ms=20)
+        game.step("UP")
 
         self.assertEqual(game.head, (10, 9))
         self.assertEqual(game.ticks, 1)
@@ -293,7 +285,7 @@ class SnakeTests(unittest.TestCase):
         game.food = (0, 0)
 
         game.advance_time(1250)
-        game.step("UP", latency_ms=1250)
+        game.step("UP")
 
         self.assertEqual(game.head, (12, 9))
         self.assertEqual(game.ticks, 3)

@@ -6,6 +6,9 @@ from .games.pong import Pong
 from .games.snake import Snake
 from .games.tetris import Tetris
 
+# Bump when rules, scoring, timing semantics, or heuristic behavior change.
+RULES_VERSION = "0.4.0"
+
 GAME_DESCRIPTIONS = {
     "minesweeper": "Seeded 9x9 Minesweeper; score is safe squares revealed.",
     "tetris": "Seeded control-loop Tetris; score uses the classic line-clear table.",
@@ -37,5 +40,5 @@ def create_game(
         assert max_seconds is not None
         return Pong(seed=seed, difficulty=difficulty, mode=mode, max_seconds=max_seconds)
     if game_id == "snake":
-        return Snake(seed=seed, difficulty=difficulty, mode=mode, max_seconds=max_seconds)
+        return Snake(seed=seed, difficulty=difficulty, mode=mode)
     raise ValueError(f"unknown game: {game_id}")

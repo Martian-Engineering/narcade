@@ -174,9 +174,7 @@ class Pong:
     def observation(self) -> Observation:
         return Observation(
             state={
-                "game": "Pong",
                 "mode": self.mode,
-                "opponent": f"deterministic {self.difficulty} tracking bot",
                 "coordinate_system": "x and y range from 0 to 1; y=0 is the top",
                 "agent": {"side": "right", "paddle_y": round(self.agent_y, 4)},
                 "opponent_paddle_y": round(self.opponent_y, 4),
@@ -186,8 +184,6 @@ class Pong:
                     "vx": round(self.ball_vx, 4),
                     "vy": round(self.ball_vy, 4),
                 },
-                "score": {"agent": self.agent_score, "opponent": self.opponent_score},
-                "target_score": self.target_score,
             },
             instructions=(
                 "Control the right paddle. Choose up, stay, or down. Intercept the ball at the "
@@ -205,8 +201,7 @@ class Pong:
             Action("down", "Move the right paddle downward"),
         ]
 
-    def step(self, action_id: str, latency_ms: float = 0.0) -> None:
-        del latency_ms
+    def step(self, action_id: str) -> None:
         if action_id not in {action.id for action in self.legal_actions()}:
             raise ValueError(f"illegal Pong action: {action_id}")
         if self.mode == "lockstep":
@@ -232,9 +227,7 @@ class Pong:
         if latency_seconds < 1e-12:
             self._cycle_remainder = self.decision_interval
         else:
-            self._cycle_remainder = (
-                0.0 if phase < 1e-12 else self.decision_interval - phase
-            )
+            self._cycle_remainder = 0.0 if phase < 1e-12 else self.decision_interval - phase
 
     def heuristic_action_id(self) -> str:
         if self.ball_vx > 0:

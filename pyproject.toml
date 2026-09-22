@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jev-game-bench"
+version = "0.2.0"
+description = "A reproducible benchmark for models playing structured-state games"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+laya = ["laya==0.3.5"]
+
+[project.scripts]
+jev-bench = "jevbench.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jevbench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]

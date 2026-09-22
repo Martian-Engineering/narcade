@@ -54,6 +54,17 @@ Snake are scored by line-clear points and food eaten, not a shared notion of
 
 ## Run locally
 
+### Reasoning-model pilot
+
+The [September 22 OpenRouter pilot](reports/2026-09-22-openrouter-pilot.md)
+compares GPT-6 Luna, GPT-6 Sol, and Claude Sonnet 5 at low and medium reasoning
+with Jev on seed 100, including p50/p95 latency. All six configurations scored
+higher on Snake; Sol medium solved Minesweeper. Responses were slower, and some
+episodes failed or hit budget limits. This one-seed diagnostic stays separate
+from the three-seed leaderboard.
+
+### Local suite
+
 Requires Python 3.11+ and uv. Model definitions and checkpoint revisions live in
 `src/jevbench/models.py`. Hosted Jev and OpenJev read `TYPESAFE_API_KEY` and
 `CODIV_API_KEY` from the environment. Select only the models you want to run.
@@ -133,8 +144,8 @@ pnpm build
 ```
 
 Deploy `app/out/` as static files. The checked-in publication is a three-seed
-0.5.0 lockstep run, including the heuristic players. Raw outputs and
-historical reports are kept outside source control.
+0.5.0 lockstep run, including the heuristic players. Raw outputs stay outside
+source control; selected sanitized summaries live in `reports/`.
 
 To compare future observation changes, rerun the same models, hardware,
 seeds, mode, difficulty, and caps as the published reference. Use `--mode lockstep

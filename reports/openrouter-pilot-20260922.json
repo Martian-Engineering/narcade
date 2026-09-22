@@ -1,0 +1,280 @@
+{
+  "protocol": "0.5.0",
+  "rules_version": "0.4.0",
+  "seed": 100,
+  "mode": "lockstep",
+  "difficulty": "medium",
+  "max_decisions": 500,
+  "max_tetris_pieces": 200,
+  "reported_cost_usd": 1.944788600000004,
+  "reserved_unknown_cost_usd": 0.053705400000000195,
+  "results": [
+    {
+      "model": "anthropic--claude-sonnet-5--low",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "completed",
+      "score": 56,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "mine",
+      "decisions": 1,
+      "p50_latency_ms": 7929.947,
+      "p95_latency_ms": 7929.947,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "anthropic--claude-sonnet-5--low",
+      "game": "snake",
+      "seed": 100,
+      "status": "completed",
+      "score": 12,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "self",
+      "decisions": 221,
+      "p50_latency_ms": 1993.408,
+      "p95_latency_ms": 5275.587,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 50
+      },
+      "reason": null
+    },
+    {
+      "model": "anthropic--claude-sonnet-5--medium",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "failed",
+      "score": null,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "policy_error",
+      "decisions": 1,
+      "p50_latency_ms": 37541.838,
+      "p95_latency_ms": 37541.838,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 0
+      },
+      "reason": null
+    },
+    {
+      "model": "anthropic--claude-sonnet-5--medium",
+      "game": "snake",
+      "seed": 100,
+      "status": "completed",
+      "score": 7,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "wall",
+      "decisions": 84,
+      "p50_latency_ms": 2076.417,
+      "p95_latency_ms": 5453.358,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 0
+      },
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-luna--low",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "completed",
+      "score": 60,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "mine",
+      "decisions": 5,
+      "p50_latency_ms": 6887.838,
+      "p95_latency_ms": 9498.503,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-luna--low",
+      "game": "snake",
+      "seed": 100,
+      "status": "completed",
+      "score": 28,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "self",
+      "decisions": 412,
+      "p50_latency_ms": 1480.845,
+      "p95_latency_ms": 2430.62,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-luna--low",
+      "game": "tetris",
+      "seed": 100,
+      "status": "completed",
+      "score": 0,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "top_out",
+      "decisions": 94,
+      "p50_latency_ms": 4742.691,
+      "p95_latency_ms": 7749.875,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-luna--medium",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "completed",
+      "score": 62,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "mine",
+      "decisions": 7,
+      "p50_latency_ms": 16165.244,
+      "p95_latency_ms": 37712.483,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 0
+      },
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-luna--medium",
+      "game": "snake",
+      "seed": 100,
+      "status": "completed",
+      "score": 37,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "decision_limit",
+      "decisions": 500,
+      "p50_latency_ms": 2172.315,
+      "p95_latency_ms": 4355.909,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 0
+      },
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-sol--low",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "completed",
+      "score": 65,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "mine",
+      "decisions": 10,
+      "p50_latency_ms": 4679.689,
+      "p95_latency_ms": 7480.415,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-sol--low",
+      "game": "snake",
+      "seed": 100,
+      "status": "completed",
+      "score": 22,
+      "partial_score": null,
+      "success": false,
+      "terminal_reason": "self",
+      "decisions": 325,
+      "p50_latency_ms": 1316.884,
+      "p95_latency_ms": 2102.478,
+      "execution": null,
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-sol--low",
+      "game": "tetris",
+      "seed": 100,
+      "status": "budget_stopped",
+      "score": null,
+      "partial_score": 40,
+      "success": false,
+      "terminal_reason": "playing",
+      "decisions": 110,
+      "p50_latency_ms": 5541.193,
+      "p95_latency_ms": 10571.935,
+      "execution": null,
+      "reason": "Per-configuration budget reached"
+    },
+    {
+      "model": "openai--gpt-6-sol--medium",
+      "game": "minesweeper",
+      "seed": 100,
+      "status": "completed",
+      "score": 73,
+      "partial_score": null,
+      "success": true,
+      "terminal_reason": "cleared",
+      "decisions": 17,
+      "p50_latency_ms": 7782.049,
+      "p95_latency_ms": 17587.911,
+      "execution": {
+        "workers": 4,
+        "replayed_prefix_decisions": 0
+      },
+      "reason": null
+    },
+    {
+      "model": "openai--gpt-6-sol--medium",
+      "game": "snake",
+      "seed": 100,
+      "status": "budget_stopped",
+      "score": null,
+      "partial_score": 38,
+      "success": false,
+      "terminal_reason": "playing",
+      "decisions": 492,
+      "p50_latency_ms": 1906.213,
+      "p95_latency_ms": 3780.301,
+      "execution": null,
+      "reason": "Per-configuration budget reached"
+    }
+  ],
+  "jev_comparison": [
+    {
+      "model": "Jev 1.13.0",
+      "game": "minesweeper",
+      "seed": 100,
+      "score": 56,
+      "decisions": 1,
+      "terminal_reason": "mine",
+      "p50_latency_ms": 329.551,
+      "p95_latency_ms": 329.551
+    },
+    {
+      "model": "Jev 1.13.0",
+      "game": "snake",
+      "seed": 100,
+      "score": 1,
+      "decisions": 17,
+      "terminal_reason": "wall",
+      "p50_latency_ms": 339.133,
+      "p95_latency_ms": 519.672
+    },
+    {
+      "model": "Jev 1.13.0",
+      "game": "tetris",
+      "seed": 100,
+      "score": 0,
+      "decisions": 20,
+      "terminal_reason": "top_out",
+      "p50_latency_ms": 350.799,
+      "p95_latency_ms": 396.434
+    }
+  ],
+  "notes": [
+    "Single-seed diagnostic, not the three-seed leaderboard.",
+    "Initial requests serial; resumed requests used up to four workers. Null execution means not recorded in the original result; see report for chronology.",
+    "Failed and budget-stopped scores are null; partial_score is not a completed outcome.",
+    "Latency includes hosted inference, reasoning, gateway and request overhead; games do not advance while waiting.",
+    "Remaining Tetris configurations were not run at user request."
+  ]
+}

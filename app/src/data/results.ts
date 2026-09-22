@@ -3,7 +3,7 @@ import published from "./published.json";
 export const records = published.records;
 export const runLabel = published.label;
 export const gameNames: Record<string, string> = {
-  minesweeper: "Minesweeper", tetris: "Tetris", pong: "Pong", snake: "Snake",
+  minesweeper: "Minesweeper", tetris: "Tetris", snake: "Snake",
 };
 export const policyNames: Record<string, string> = {
   jev: "Jev", openjev: "OpenJev", kev: "Kev", laya: "Laya",

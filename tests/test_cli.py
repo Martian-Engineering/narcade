@@ -36,7 +36,7 @@ class CliTests(unittest.TestCase):
             self.assertEqual(
                 json.loads((output / "manifest.json").read_text())["status"], "completed"
             )
-            for game in ("minesweeper", "tetris", "pong", "snake"):
+            for game in ("minesweeper", "tetris", "snake"):
                 result = json.loads((output / f"random-{game}.json").read_text())
                 self.assertEqual([e["seed"] for e in result["episodes"]], [40, 41])
                 self.assertNotIn("decision_log", result["episodes"][0])

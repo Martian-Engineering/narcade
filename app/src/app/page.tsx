@@ -12,6 +12,7 @@ export default function Home() {
             <h1>NARCADE</h1>
           </a>
           <nav aria-label="Project links">
+            <a href="/tetris">Replays ↗</a>
             <a href={`${repository}#readme`} target="_blank" rel="noreferrer">About ↗</a>
             <a href={repository} target="_blank" rel="noreferrer">GitHub ↗</a>
           </nav>
@@ -22,8 +23,8 @@ export default function Home() {
           {" "}<em>C</em>hoice <em>A</em>cross <em>D</em>iscrete <em>E</em>nvironments) measures how
           well decision models play deterministic games. Every policy receives the same seeds,
           rules, structured state, and legal actions. Game engines assign objective scores; no
-          judge model is involved. Results identify their protocol and timing mode. Original observations are retained as
-          the baseline for measuring the simplified inputs. Full details live on GitHub.
+          judge model is involved. These protocol 0.5.0 results use three matched seeds and
+          lockstep decisions. Watch the recorded games or read the methodology and limitations on GitHub.
         </p>
 
         <section className="results" aria-labelledby="results-title">

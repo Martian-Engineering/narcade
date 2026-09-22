@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 
 from jevbench.games.minesweeper import Minesweeper
-from jevbench.games.pong import Pong
 from jevbench.games.snake import Snake
 from jevbench.games.tetris import Tetris
 from jevbench.games.tetris.environment import SHAPES
@@ -161,64 +160,6 @@ class TetrisTests(unittest.TestCase):
         self.assertEqual(game.column, spawned_column)
         self.assertEqual(game.row, 1)
         self.assertEqual(game.missed_pieces, 1)
-
-
-class PongTests(unittest.TestCase):
-    def _play(self, seed: int) -> dict[str, object]:
-        game = Pong(seed, difficulty="easy", mode="lockstep")
-        for _ in range(500):
-            if game.done:
-                break
-            game.step(game.heuristic_action_id())
-        return game.result()
-
-    def test_seed_reproduces_match(self) -> None:
-        self.assertEqual(self._play(9), self._play(9))
-
-    def test_heuristic_can_score_against_easy_opponent(self) -> None:
-        result = self._play(2)
-        self.assertGreater(result["agent_points"], 0)
-        self.assertIn(result["terminal_reason"], {"target_score", "time_limit"})
-
-    def test_winning_point_does_not_create_an_unplayed_rally(self) -> None:
-        game = Pong(1, difficulty="easy", mode="lockstep", target_score=1)
-        game.ball_x = -0.02
-        game.ball_vx = -0.6
-        game._simulate_tick(0.01)
-        self.assertTrue(game.done)
-        self.assertEqual(game.agent_score, 1)
-        self.assertEqual(game.rallies, 1)
-
-    def test_realtime_mode_advances_by_full_model_latency(self) -> None:
-        game = Pong(1, difficulty="easy", mode="realtime")
-        advanced = []
-        game._advance = advanced.append
-
-        game.advance_time(3500)
-
-        self.assertEqual(advanced, [3.5])
-        self.assertEqual(game.late_decisions, 1)
-
-    def test_realtime_fast_answer_controls_rest_of_interval(self) -> None:
-        game = Pong(1, difficulty="easy", mode="realtime")
-        advanced = []
-        game._advance = advanced.append
-
-        game.advance_time(30)
-        game.step("down")
-
-        self.assertEqual(advanced, [0.03, 0.07])
-        self.assertEqual(game.agent_command, "down")
-
-    def test_realtime_mode_stops_at_match_deadline(self) -> None:
-        game = Pong(1, difficulty="easy", mode="realtime", max_seconds=120)
-        game.elapsed_seconds = 119.995
-
-        game.advance_time(1000)
-
-        self.assertAlmostEqual(game.elapsed_seconds, 120)
-        self.assertTrue(game.done)
-        self.assertEqual(game.result()["terminal_reason"], "time_limit")
 
 
 class SnakeTests(unittest.TestCase):

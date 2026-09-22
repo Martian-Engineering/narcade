@@ -50,7 +50,7 @@ DEFAULT_MODELS = {
         runtime_revision="5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
         quantization="bf16",
         training_exposure=(
-            "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake "
+            "No exposure to the benchmark's exact Minesweeper, Tetris, or Snake "
             "environments declared in the Kev-4B model card"
         ),
     ),

@@ -18,14 +18,14 @@ class HuggingFaceJobTests(unittest.TestCase):
             RunConfig(models=["bogus"]),
             RunConfig(episodes=0),
             RunConfig(max_seconds=float("nan")),
-            RunConfig(games=["pong", "pong"]),
+            RunConfig(games=["tetris", "tetris"]),
         ):
             with self.assertRaises(ValueError):
                 config.validate()
         options = RunConfig(mode="realtime", max_seconds=30, max_pieces=200)
         self.assertEqual(options.game_options("minesweeper")["mode"], "lockstep")
         self.assertIsNone(options.game_options("snake")["max_seconds"])
-        self.assertEqual(options.game_options("pong")["max_seconds"], 30)
+        self.assertEqual(options.game_options("tetris")["max_seconds"], 30)
         self.assertEqual(options.game_options("tetris")["piece_limit"], 200)
 
     def test_local_models_send_no_hosted_secrets(self):

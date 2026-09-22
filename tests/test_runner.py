@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 from jevbench.core import Action, Observation, PolicyDecision, PolicyError, PolicyTimeout
 from jevbench.games.minesweeper import Minesweeper
-from jevbench.games.pong import Pong
 from jevbench.games.snake import Snake
+from jevbench.games.tetris import Tetris
 from jevbench.policies import HeuristicPolicy
 from jevbench.runner import run_benchmark, run_episode
 
@@ -88,7 +88,7 @@ class RunnerTests(unittest.TestCase):
     def test_realtime_timeout_advances_game_by_wait_duration(self, perf_counter) -> None:
         del perf_counter
         result = run_episode(
-            Pong(1, difficulty="easy", mode="realtime"),
+            Tetris(1, difficulty="easy", mode="realtime"),
             TimeoutPolicy(),
             seed=1,
             max_decisions=10,
@@ -105,14 +105,14 @@ class RunnerTests(unittest.TestCase):
         del perf_counter
         records = []
         result = run_episode(
-            Pong(1, difficulty="easy", mode="realtime", max_seconds=0.1),
+            Tetris(1, difficulty="easy", mode="realtime", max_seconds=0.1),
             InvalidPolicy(),
             seed=1,
             max_decisions=10,
             trace=records.append,
         )
 
-        self.assertEqual(result["terminal_reason"], "time_limit")
+        self.assertEqual(result["terminal_reason"], "diagnostic_time_limit")
         self.assertEqual(result["invalid_actions"], 1)
         self.assertFalse(result["success"])
         self.assertEqual(records[0]["error"], "invalid_action")
@@ -132,7 +132,7 @@ class RunnerTests(unittest.TestCase):
 
     def test_realtime_aggregate_reports_latency_penalties(self) -> None:
         def games(seed: int):
-            return Pong(seed, difficulty="easy", mode="realtime", max_seconds=0.2)
+            return Tetris(seed, difficulty="easy", mode="realtime", max_seconds=0.2)
 
         def policies(seed: int):
             del seed
@@ -141,7 +141,7 @@ class RunnerTests(unittest.TestCase):
         result = run_benchmark(
             games,
             policies,
-            game_id="pong",
+            game_id="tetris",
             policy_name="heuristic",
             first_seed=1,
             episodes=1,
@@ -156,9 +156,9 @@ class RunnerTests(unittest.TestCase):
         del perf_counter
 
         result = run_benchmark(
-            lambda seed: Pong(seed, difficulty="easy", mode="realtime"),
+            lambda seed: Tetris(seed, difficulty="easy", mode="realtime"),
             lambda seed: ErrorPolicy(),
-            game_id="pong",
+            game_id="tetris",
             policy_name="error",
             first_seed=1,
             episodes=1,

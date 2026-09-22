@@ -63,9 +63,7 @@ class RunConfig:
             difficulty=self.difficulty,
             mode=mode,
             piece_limit=self.max_pieces if game == "tetris" else None,
-            max_seconds=(self.max_seconds or 120)
-            if game == "pong"
-            else (self.max_seconds if game == "tetris" else None),
+            max_seconds=self.max_seconds if game == "tetris" else None,
         )
 
 

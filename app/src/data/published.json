@@ -1,854 +1,17 @@
 {
-  "label": "2026-09-22 \u00b7 original observations \u00b7 lockstep \u00b7 3 seeds",
+  "label": "2026-09-22 \u00b7 simplified observations \u00b7 lockstep \u00b7 3 seeds",
   "records": [
     {
-      "game": "minesweeper",
-      "policy": "jev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": null,
-        "artifact_revision": null,
-        "container_digest": null,
-        "endpoint": "https://api.typesafe.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "jev",
-        "quantization": null,
-        "requested_model": "jev-1.13.0",
-        "resolved_model": "jev-1.13.0",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 57.333,
-        "min_score": 49.0,
-        "max_score": 67.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 359.451,
-        "p95_latency_ms": 420.453,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 56,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 67,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 49,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "pong",
-      "policy": "jev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": 120,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": null,
-        "artifact_revision": null,
-        "container_digest": null,
-        "endpoint": "https://api.typesafe.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "jev",
-        "quantization": null,
-        "requested_model": "jev-1.13.0",
-        "resolved_model": "jev-1.13.0",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 0.667,
-        "min_score": 0.0,
-        "max_score": 1.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 347.459,
-        "p95_latency_ms": 451.446,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "snake",
-      "policy": "jev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": null,
-        "artifact_revision": null,
-        "container_digest": null,
-        "endpoint": "https://api.typesafe.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "jev",
-        "quantization": null,
-        "requested_model": "jev-1.13.0",
-        "resolved_model": "jev-1.13.0",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 2.667,
-        "min_score": 2.0,
-        "max_score": 4.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 350.79,
-        "p95_latency_ms": 433.427,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 4,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
       "game": "tetris",
-      "policy": "jev",
+      "policy": "heuristic",
       "protocol": {
-        "version": "0.4.0",
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
         "difficulty": "medium",
         "mode": "lockstep",
         "piece_limit": 200,
         "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": null,
-        "artifact_revision": null,
-        "container_digest": null,
-        "endpoint": "https://api.typesafe.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "jev",
-        "quantization": null,
-        "requested_model": "jev-1.13.0",
-        "resolved_model": "jev-1.13.0",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 340.499,
-        "p95_latency_ms": 437.249,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "minesweeper",
-      "policy": "openjev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
-        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
-        "container_digest": null,
-        "endpoint": "https://api.codiv.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "openjev",
-        "quantization": null,
-        "requested_model": "openjev-0.1",
-        "resolved_model": "openjev-0.1",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 56.667,
-        "min_score": 46.0,
-        "max_score": 68.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 568.985,
-        "p95_latency_ms": 1794.417,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 56,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 68,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 46,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "pong",
-      "policy": "openjev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": 120,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
-        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
-        "container_digest": null,
-        "endpoint": "https://api.codiv.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "openjev",
-        "quantization": null,
-        "requested_model": "openjev-0.1",
-        "resolved_model": "openjev-0.1",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 1.333,
-        "min_score": 1.0,
-        "max_score": 2.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 408.965,
-        "p95_latency_ms": 512.108,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "snake",
-      "policy": "openjev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
-        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
-        "container_digest": null,
-        "endpoint": "https://api.codiv.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "openjev",
-        "quantization": null,
-        "requested_model": "openjev-0.1",
-        "resolved_model": "openjev-0.1",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 448.463,
-        "p95_latency_ms": 604.699,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "tetris",
-      "policy": "openjev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": 200,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
-        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
-        "container_digest": null,
-        "endpoint": "https://api.codiv.ai/v1/systemone",
-        "hardware": null,
-        "kind": "model",
-        "provider": "openjev",
-        "quantization": null,
-        "requested_model": "openjev-0.1",
-        "resolved_model": "openjev-0.1",
-        "runtime": null,
-        "runtime_revision": null,
-        "training_exposure": null
-      },
-      "aggregate": {
-        "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 528.672,
-        "p95_latency_ms": 1279.343,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "minesweeper",
-      "policy": "kev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "jaredpalmer/kev-4b",
-        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
-        "container_digest": null,
-        "endpoint": "http://127.0.0.1:8009/v1/systemone",
-        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
-        "kind": "model",
-        "provider": "kev",
-        "quantization": "bf16",
-        "requested_model": "kev-latest",
-        "resolved_model": "kev-latest",
-        "runtime": "kev",
-        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
-        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake environments declared in the Kev-4B model card"
-      },
-      "aggregate": {
-        "mean_score": 57.333,
-        "min_score": 48.0,
-        "max_score": 68.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 119.817,
-        "p95_latency_ms": 574.352,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 56,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 68,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 48,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "pong",
-      "policy": "kev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": 120,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "jaredpalmer/kev-4b",
-        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
-        "container_digest": null,
-        "endpoint": "http://127.0.0.1:8009/v1/systemone",
-        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
-        "kind": "model",
-        "provider": "kev",
-        "quantization": "bf16",
-        "requested_model": "kev-latest",
-        "resolved_model": "kev-latest",
-        "runtime": "kev",
-        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
-        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake environments declared in the Kev-4B model card"
-      },
-      "aggregate": {
-        "mean_score": 1.667,
-        "min_score": 1.0,
-        "max_score": 2.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 87.13,
-        "p95_latency_ms": 88.234,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "snake",
-      "policy": "kev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "jaredpalmer/kev-4b",
-        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
-        "container_digest": null,
-        "endpoint": "http://127.0.0.1:8009/v1/systemone",
-        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
-        "kind": "model",
-        "provider": "kev",
-        "quantization": "bf16",
-        "requested_model": "kev-latest",
-        "resolved_model": "kev-latest",
-        "runtime": "kev",
-        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
-        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake environments declared in the Kev-4B model card"
-      },
-      "aggregate": {
-        "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 98.045,
-        "p95_latency_ms": 99.171,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "tetris",
-      "policy": "kev",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": 200,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "artifact": "jaredpalmer/kev-4b",
-        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
-        "container_digest": null,
-        "endpoint": "http://127.0.0.1:8009/v1/systemone",
-        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
-        "kind": "model",
-        "provider": "kev",
-        "quantization": "bf16",
-        "requested_model": "kev-latest",
-        "resolved_model": "kev-latest",
-        "runtime": "kev",
-        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
-        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, Pong, or Snake environments declared in the Kev-4B model card"
-      },
-      "aggregate": {
-        "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 103.251,
-        "p95_latency_ms": 106.774,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "minesweeper",
-      "policy": "heuristic",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "kind": "baseline",
-        "name": "heuristic"
-      },
-      "aggregate": {
-        "mean_score": 69.667,
-        "min_score": 68.0,
-        "max_score": 73.0,
-        "success_rate": 0.3333,
-        "p50_latency_ms": 0.166,
-        "p95_latency_ms": 0.185,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 73,
-          "success": true,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 68,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 68,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "pong",
-      "policy": "heuristic",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": 120,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "kind": "baseline",
-        "name": "heuristic"
-      },
-      "aggregate": {
-        "mean_score": 3.0,
-        "min_score": 3.0,
-        "max_score": 3.0,
-        "success_rate": 1.0,
-        "p50_latency_ms": 0.001,
-        "p95_latency_ms": 0.001,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 3,
-          "success": true,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 3,
-          "success": true,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 3,
-          "success": true,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "snake",
-      "policy": "heuristic",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "kind": "baseline",
-        "name": "heuristic"
-      },
-      "aggregate": {
-        "mean_score": 33.0,
-        "min_score": 28.0,
-        "max_score": 37.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 1.315,
-        "p95_latency_ms": 1.442,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 28,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 34,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 37,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "tetris",
-      "policy": "heuristic",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": 200,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
+        "max_decisions": 500
       },
       "model": {
         "kind": "baseline",
@@ -856,13 +19,13 @@
       },
       "aggregate": {
         "mean_score": 4500.0,
-        "min_score": 4240.0,
-        "max_score": 4700.0,
+        "min_score": 4240,
+        "max_score": 4700,
         "success_rate": 0.0,
-        "p50_latency_ms": 0.279,
-        "p95_latency_ms": 0.544,
+        "p50_latency_ms": 0.65,
+        "p95_latency_ms": 1.271,
         "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
+        "mean_elapsed_seconds": 0.456037
       },
       "episodes": [
         {
@@ -886,124 +49,41 @@
       ]
     },
     {
-      "game": "minesweeper",
-      "policy": "random",
+      "game": "tetris",
+      "policy": "kev",
       "protocol": {
-        "version": "0.4.0",
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
         "difficulty": "medium",
         "mode": "lockstep",
-        "piece_limit": null,
+        "piece_limit": 200,
         "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
+        "max_decisions": 500
       },
       "model": {
-        "kind": "baseline",
-        "name": "random"
-      },
-      "aggregate": {
-        "mean_score": 58.0,
-        "min_score": 49.0,
-        "max_score": 69.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 0.002,
-        "p95_latency_ms": 0.005,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 56,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 69,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 49,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "pong",
-      "policy": "random",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": 120,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "kind": "baseline",
-        "name": "random"
-      },
-      "aggregate": {
-        "mean_score": 1.0,
-        "min_score": 0.0,
-        "max_score": 2.0,
-        "success_rate": 0.0,
-        "p50_latency_ms": 0.001,
-        "p95_latency_ms": 0.001,
-        "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
-      },
-      "episodes": [
-        {
-          "seed": 100,
-          "score": 1,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 101,
-          "score": 2,
-          "success": false,
-          "solve_seconds": null
-        },
-        {
-          "seed": 102,
-          "score": 0,
-          "success": false,
-          "solve_seconds": null
-        }
-      ]
-    },
-    {
-      "game": "snake",
-      "policy": "random",
-      "protocol": {
-        "version": "0.4.0",
-        "difficulty": "medium",
-        "mode": "lockstep",
-        "piece_limit": null,
-        "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
-      },
-      "model": {
-        "kind": "baseline",
-        "name": "random"
+        "kind": "model",
+        "provider": "kev",
+        "endpoint": "http://127.0.0.1:8009/v1/systemone",
+        "requested_model": "kev-latest",
+        "resolved_model": "kev-latest",
+        "artifact": "jaredpalmer/kev-4b",
+        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
+        "runtime": "kev",
+        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
+        "container_digest": null,
+        "quantization": "bf16",
+        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
+        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, or Snake environments declared in the Kev-4B model card"
       },
       "aggregate": {
         "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
         "success_rate": 0.0,
-        "p50_latency_ms": 0.001,
-        "p95_latency_ms": 0.001,
+        "p50_latency_ms": 94.955,
+        "p95_latency_ms": 100.831,
         "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
+        "mean_elapsed_seconds": 2.20898
       },
       "episodes": [
         {
@@ -1030,13 +110,13 @@
       "game": "tetris",
       "policy": "random",
       "protocol": {
-        "version": "0.4.0",
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
         "difficulty": "medium",
         "mode": "lockstep",
         "piece_limit": 200,
         "max_seconds": null,
-        "max_decisions": 500,
-        "rules_version": "0.4.0"
+        "max_decisions": 500
       },
       "model": {
         "kind": "baseline",
@@ -1044,13 +124,13 @@
       },
       "aggregate": {
         "mean_score": 0.0,
-        "min_score": 0.0,
-        "max_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
         "success_rate": 0.0,
         "p50_latency_ms": 0.001,
-        "p95_latency_ms": 0.001,
+        "p95_latency_ms": 0.002,
         "mean_solve_seconds": null,
-        "mean_elapsed_seconds": null
+        "mean_elapsed_seconds": 0.002431
       },
       "episodes": [
         {
@@ -1068,6 +148,658 @@
         {
           "seed": 102,
           "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "snake",
+      "policy": "heuristic",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "baseline",
+        "name": "heuristic"
+      },
+      "aggregate": {
+        "mean_score": 33.0,
+        "min_score": 28,
+        "max_score": 37,
+        "success_rate": 0.0,
+        "p50_latency_ms": 3.356,
+        "p95_latency_ms": 3.526,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 1.43364
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 28,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 34,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 37,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "snake",
+      "policy": "kev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "kev",
+        "endpoint": "http://127.0.0.1:8009/v1/systemone",
+        "requested_model": "kev-latest",
+        "resolved_model": "kev-latest",
+        "artifact": "jaredpalmer/kev-4b",
+        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
+        "runtime": "kev",
+        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
+        "container_digest": null,
+        "quantization": "bf16",
+        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
+        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, or Snake environments declared in the Kev-4B model card"
+      },
+      "aggregate": {
+        "mean_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
+        "success_rate": 0.0,
+        "p50_latency_ms": 81.904,
+        "p95_latency_ms": 83.26,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.821167
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "snake",
+      "policy": "random",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "baseline",
+        "name": "random"
+      },
+      "aggregate": {
+        "mean_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
+        "success_rate": 0.0,
+        "p50_latency_ms": 0.001,
+        "p95_latency_ms": 0.002,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.00227
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "minesweeper",
+      "policy": "heuristic",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "baseline",
+        "name": "heuristic"
+      },
+      "aggregate": {
+        "mean_score": 69.667,
+        "min_score": 68,
+        "max_score": 73,
+        "success_rate": 0.3333,
+        "p50_latency_ms": 0.473,
+        "p95_latency_ms": 0.541,
+        "mean_solve_seconds": 0.013597,
+        "mean_elapsed_seconds": 0.006501
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 73,
+          "success": true,
+          "solve_seconds": 0.013597
+        },
+        {
+          "seed": 101,
+          "score": 68,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 68,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "minesweeper",
+      "policy": "kev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "kev",
+        "endpoint": "http://127.0.0.1:8009/v1/systemone",
+        "requested_model": "kev-latest",
+        "resolved_model": "kev-latest",
+        "artifact": "jaredpalmer/kev-4b",
+        "artifact_revision": "485ace8703592fcf405488b262449990824cfed1",
+        "runtime": "kev",
+        "runtime_revision": "5e94a28818cfd3d0ec9b8bca046dc8db0d79a704",
+        "container_digest": null,
+        "quantization": "bf16",
+        "hardware": "gpu \u00b7 NVIDIA A100-SXM4-80GB",
+        "training_exposure": "No exposure to the benchmark's exact Minesweeper, Tetris, or Snake environments declared in the Kev-4B model card"
+      },
+      "aggregate": {
+        "mean_score": 57.333,
+        "min_score": 47,
+        "max_score": 67,
+        "success_rate": 0.0,
+        "p50_latency_ms": 111.166,
+        "p95_latency_ms": 119.69,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.225452
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 58,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 67,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 47,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "minesweeper",
+      "policy": "random",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "baseline",
+        "name": "random"
+      },
+      "aggregate": {
+        "mean_score": 58.0,
+        "min_score": 49,
+        "max_score": 69,
+        "success_rate": 0.0,
+        "p50_latency_ms": 0.002,
+        "p95_latency_ms": 0.005,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.000913
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 56,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 69,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 49,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "tetris",
+      "policy": "jev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": 200,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "jev",
+        "endpoint": "https://api.typesafe.ai/v1/systemone",
+        "requested_model": "jev-1.13.0",
+        "resolved_model": "jev-1.13.0",
+        "artifact": null,
+        "artifact_revision": null,
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
+        "success_rate": 0.0,
+        "p50_latency_ms": 347.524,
+        "p95_latency_ms": 396.434,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 7.283108
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "tetris",
+      "policy": "openjev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": 200,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "openjev",
+        "endpoint": "https://api.codiv.ai/v1/systemone",
+        "requested_model": "openjev-0.1",
+        "resolved_model": "openjev-0.1",
+        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
+        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
+        "success_rate": 0.0,
+        "p50_latency_ms": 448.736,
+        "p95_latency_ms": 814.458,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 48.213389
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "snake",
+      "policy": "jev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "jev",
+        "endpoint": "https://api.typesafe.ai/v1/systemone",
+        "requested_model": "jev-1.13.0",
+        "resolved_model": "jev-1.13.0",
+        "artifact": null,
+        "artifact_revision": null,
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 0.667,
+        "min_score": 0,
+        "max_score": 1,
+        "success_rate": 0.0,
+        "p50_latency_ms": 337.149,
+        "p95_latency_ms": 412.415,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 4.972114
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 1,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 1,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "snake",
+      "policy": "openjev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "openjev",
+        "endpoint": "https://api.codiv.ai/v1/systemone",
+        "requested_model": "openjev-0.1",
+        "resolved_model": "openjev-0.1",
+        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
+        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 0.0,
+        "min_score": 0,
+        "max_score": 0,
+        "success_rate": 0.0,
+        "p50_latency_ms": 456.454,
+        "p95_latency_ms": 544.998,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 7.059553
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 0,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "minesweeper",
+      "policy": "jev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "jev",
+        "endpoint": "https://api.typesafe.ai/v1/systemone",
+        "requested_model": "jev-1.13.0",
+        "resolved_model": "jev-1.13.0",
+        "artifact": null,
+        "artifact_revision": null,
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 57.333,
+        "min_score": 49,
+        "max_score": 67,
+        "success_rate": 0.0,
+        "p50_latency_ms": 312.519,
+        "p95_latency_ms": 362.521,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.644498
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 56,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 67,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 49,
+          "success": false,
+          "solve_seconds": null
+        }
+      ]
+    },
+    {
+      "game": "minesweeper",
+      "policy": "openjev",
+      "protocol": {
+        "version": "0.5.0",
+        "rules_version": "0.4.0",
+        "difficulty": "medium",
+        "mode": "lockstep",
+        "piece_limit": null,
+        "max_seconds": null,
+        "max_decisions": 500
+      },
+      "model": {
+        "kind": "model",
+        "provider": "openjev",
+        "endpoint": "https://api.codiv.ai/v1/systemone",
+        "requested_model": "openjev-0.1",
+        "resolved_model": "openjev-0.1",
+        "artifact": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
+        "artifact_revision": "ec4ff3df205028f4e81c954c2227f9312b3ec2ea",
+        "runtime": null,
+        "runtime_revision": null,
+        "container_digest": null,
+        "quantization": null,
+        "hardware": null,
+        "training_exposure": null
+      },
+      "aggregate": {
+        "mean_score": 56.667,
+        "min_score": 46,
+        "max_score": 68,
+        "success_rate": 0.0,
+        "p50_latency_ms": 442.297,
+        "p95_latency_ms": 498.996,
+        "mean_solve_seconds": null,
+        "mean_elapsed_seconds": 0.600212
+      },
+      "episodes": [
+        {
+          "seed": 100,
+          "score": 56,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 101,
+          "score": 68,
+          "success": false,
+          "solve_seconds": null
+        },
+        {
+          "seed": 102,
+          "score": 46,
           "success": false,
           "solve_seconds": null
         }

@@ -11,6 +11,42 @@
   --pink: #ff62c6;
 }
 
+.replay-games { display: flex; flex-wrap: wrap; gap: 22px; margin: 28px 0; text-transform: uppercase; font-size: 14px; color: var(--muted); }
+.replay-games a[aria-current], .replay-games a:hover { color: var(--green); }
+.replay-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; text-transform: uppercase; }
+.replay-heading h2 { font-size: 23px; margin: 0; }
+.replay-heading span, .replay-intro { color: var(--muted); font-size: 14px; }
+.replay-selectors { display: flex; flex-wrap: wrap; gap: 22px; align-items: end; margin: 24px 0; }
+.replay-selectors label { display: grid; gap: 7px; color: var(--muted); text-transform: uppercase; font-size: 12px; }
+.replay-selectors select { font: inherit; font-size: 15px; padding: 10px; background: var(--panel); border: 1px solid var(--line-bright); color: var(--ink); }
+.replay-download { margin-left: auto; padding-bottom: 10px; font-size: 12px; color: var(--cyan); text-transform: uppercase; }
+.replay-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; border: 1px solid var(--line-bright); background: var(--panel); }
+.replay-stage { min-width: 0; padding: 24px; display: grid; align-items: center; min-height: 440px; }
+.replay-stage svg { max-height: 560px; }
+.replay-inspector { min-width: 0; padding: 24px; border-left: 1px solid var(--line); }
+.replay-step, .replay-inspector h3 { text-transform: uppercase; color: var(--muted); font-size: 12px; }
+.replay-action { color: var(--green); font-size: 24px; margin: 12px 0; text-shadow: 0 0 12px #74ff8640; }
+.replay-inspector p { font-size: 14px; color: var(--muted); }
+.replay-inspector dl > div { display: flex; justify-content: space-between; margin: 12px 0; font-size: 13px; }
+.replay-inspector dt { color: var(--muted); }
+.replay-inspector dd { margin: 0; }
+.replay-probabilities { max-height: 300px; overflow-y: auto; }
+.replay-probabilities > div { display: grid; grid-template-columns: 90px minmax(30px,1fr) 35px; gap: 8px; align-items: center; font-size: 12px; margin: 9px 0; color: var(--muted); }
+.replay-probabilities .chosen { color: var(--green); }
+.replay-probabilities meter { width: 100%; accent-color: var(--green); }
+.replay-playback { display: flex; gap: 10px; align-items: center; padding: 18px 0; }
+.replay-playback button { background: var(--panel); border: 1px solid var(--line-bright); color: var(--ink); min-width: 44px; height: 44px; cursor: pointer; }
+.replay-playback button:disabled { opacity: .35; cursor: default; }
+.replay-playback .play-button { background: var(--green); color: var(--bg); min-width: 90px; text-transform: uppercase; }
+.replay-playback input { flex: 1; min-width: 40px; accent-color: var(--green); }
+.replay-playback span { font-size: 12px; min-width: 65px; text-align: right; }
+.replay-raw { border-top: 1px solid var(--line); padding: 18px 0; font-size: 13px; }
+.replay-raw summary { cursor: pointer; color: var(--cyan); text-transform: uppercase; }
+.replay-raw pre { overflow: auto; max-height: 400px; padding: 16px; background: var(--panel); font: 13px/1.6 monospace; }
+.replay-provenance { font-size: 12px; color: var(--muted); max-width: 850px; }
+.replay-page :focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+@media (max-width: 800px) { .replay-layout { grid-template-columns: 1fr; } .replay-inspector { border-left: 0; border-top: 1px solid var(--line); } .replay-stage { padding: 16px; min-height: 300px; } .replay-download { margin-left: 0; } .replay-playback { flex-wrap: wrap; } }
+
 * { box-sizing: border-box; }
 body {
   margin: 0;
